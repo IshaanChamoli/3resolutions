@@ -142,7 +142,7 @@ export default function Home() {
                   disabled={isGenerating}
                   className="w-full mt-16 px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  {isGenerating ? 'Creating Your Puzzle... 🎨' : 'Generate AI Art 🎨'}
+                  {isGenerating ? 'Generating an image with your goals ✨' : 'Generate AI Art 🎨'}
                 </button>
               </div>
             </div>
@@ -169,7 +169,7 @@ export default function Home() {
               {!isEditing && (
                 <>
                   <p className="text-sm text-gray-500 mt-4 text-center mb-9">
-                    Can your friends guess your resolutions from this image? 🤔
+                  Can others guess what your resolutions are? Let's find out! 🤔
                   </p>
                   <div className="space-y-3 w-full">
                     {generatedImage && (
