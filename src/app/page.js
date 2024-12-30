@@ -122,12 +122,9 @@ export default function Home() {
 
   const handleLinkedInShare = () => {
     if (generatedImage) {
-      // Create the share URL with the encoded image URL
-      const shareUrl = `${window.location.origin}/share/${encodeURIComponent(generatedImage)}`;
+      const shareText = 'Visit 3resolutions.com';
       
-      const shareText = `🎯 Can you guess my 3 New Year's resolutions from this AI-generated image?\n\n🤔 Take a guess in the comments!\n\n#NewYearResolutions #AI #3Resolutions`;
-      
-      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`;
       
       window.open(linkedInUrl, '_blank', 'width=600,height=600');
     }
@@ -182,10 +179,10 @@ export default function Home() {
         {/* Header Section - Same for both signed in and signed out states */}
         <div className="text-center pt-16 mb-12">
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
-            3Resolutions 🎉
+            3resolutions 🎉
           </h1>
           <p className="text-gray-600 text-xl mb-6">
-            Set your resolutions & make your friends guess!<br/>
+            Set your New Year's resolutions & make your friends guess!<br/>
             We'll help you stick to them <span className="text-purple-600 font-semibold">💪</span>
           </p>
         </div>
