@@ -10,6 +10,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [isEditing, setIsEditing] = useState(true);
+  const [isOptedIn, setIsOptedIn] = useState(true);
 
   useEffect(() => {
     if (session) {
@@ -33,6 +34,28 @@ export default function Home() {
       }
     }
   }, [resolutions, session]);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      const initializeUser = async () => {
+        const userRef = doc(db, "users", session.user.email);
+        const userDoc = await getDoc(userRef);
+        
+        if (!userDoc.exists()) {
+          // New user - set default lockedIn status
+          await setDoc(userRef, {
+            lockedIn: true,
+            createdAt: new Date().toISOString()
+          });
+        } else {
+          // Existing user - load their lockedIn status
+          setIsOptedIn(userDoc.data().lockedIn ?? true);
+        }
+      };
+      
+      initializeUser();
+    }
+  }, [session]);
 
   const handleResolutionChange = (index, value) => {
     const newResolutions = [...resolutions];
@@ -88,16 +111,16 @@ export default function Home() {
     setIsEditing(false);
     setIsGenerating(true);
     try {
-      // First save resolutions to Firestore
+      // Save resolutions and update lockedIn status to Firestore
       if (session?.user?.email) {
         const userRef = doc(db, "users", session.user.email);
         await setDoc(userRef, {
           resolutions: resolutions.join(','),
           lastUpdated: new Date().toISOString(),
-          // Increment the image count
-          imageCount: increment(1)
+          imageCount: increment(1),
+          lockedIn: isOptedIn, // Update lockedIn status
         }, { merge: true });
-        console.log('Resolutions saved to Firestore');
+        console.log('Resolutions and lockedIn status saved to Firestore');
       }
 
       console.log('Calling generate-image API...');
@@ -200,23 +223,75 @@ So go and commit to your New Year's resolutions now!
       {session && (
         <button
           onClick={() => signOut()}
-          className="fixed bottom-4 right-4 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium transition-colors flex items-center gap-2"
+          className="fixed bottom-12 right-4 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium transition-colors flex items-center gap-2"
         >
           <span>Sign out</span>
           <span className="text-xs">({session.user.email})</span>
         </button>
       )}
 
+      <div className="fixed bottom-4 right-4 text-xs text-gray-400">
+        Made with ❤️ by{' '}
+        <a 
+          href="https://www.linkedin.com/in/ishaanchamoli/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Ishaan
+        </a>
+        {' & '}
+        <a 
+          href="https://www.linkedin.com/in/sangeetranjan/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Sangeet
+        </a>
+      </div>
+
       <div className="max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
-        {/* Header Section - Same for both signed in and signed out states */}
-        <div className="text-center pt-16 mb-12">
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
-            3resolutions 🎉
-          </h1>
-          <p className="text-gray-600 text-xl mb-6">
-            Set your New Year's resolutions & make your friends guess!<br/>
-            We'll help you stick to them <span className="text-purple-600 font-semibold">💪</span>
-          </p>
+        {/* Header Section */}
+        <div className="text-center pt-12 mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
+            3resolutions &nbsp;</h1>
+          <span className="inline-block animate-party text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
+          <div className="text-gray-600 text-sm md:text-base space-y-2 max-w-sm mx-auto text-left pl-8 pr-4">
+            <p className="flex items-center gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
+              <span className="text-purple-600 font-bold min-w-[1.25rem]">1.</span>
+              Share your top 3 resolutions for 2025
+            </p>
+            <p className="flex items-center gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
+              <span className="text-purple-600 font-bold min-w-[1.25rem]">2.</span>
+              Get a unique AI image that hints at them
+            </p>
+            <p className="flex items-center gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
+              <span className="text-purple-600 font-bold min-w-[1.25rem]">3.</span>
+              Challenge your LinkedIn network to guess
+            </p>
+            <p className="flex items-start gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
+              <span className="text-purple-600 font-bold min-w-[1.25rem]">4.</span>
+              <span className="flex flex-col gap-1">
+                <span className="whitespace-normal text-sm md:text-base">
+                  If 500+ people commit, we'll add tech to keep you personally accountable!
+                </span>
+                <label className={`flex items-center gap-2 text-purple-600 whitespace-nowrap cursor-${isEditing ? 'pointer' : 'not-allowed'} ${!isEditing && 'opacity-75'}`}>
+                  <input
+                    type="checkbox"
+                    checked={isOptedIn}
+                    onChange={(e) => setIsOptedIn(e.target.checked)}
+                    disabled={!isEditing}
+                    className={`h-4 w-4 rounded border-purple-400 text-purple-600 focus:ring-purple-500 
+                      ${!isEditing && 'cursor-not-allowed opacity-75'}`}
+                  />
+                  <span className={`text-sm font-medium ${!isEditing && 'opacity-75'}`}>
+                    {isEditing ? 'Lock in!' : (isOptedIn ? 'Locked in :)' : 'Not locked in :(')}
+                  </span>
+                </label>
+              </span>
+            </p>
+          </div>
         </div>
 
         {/* Main Content */}
@@ -253,7 +328,7 @@ So go and commit to your New Year's resolutions now!
                         type="text"
                         value={resolutions[index]}
                         onChange={(e) => handleResolutionChange(index, e.target.value)}
-                        placeholder="Enter your resolution... (keep it short!)"
+                        placeholder="Enter resolution..."
                         maxLength={50}
                         className="w-full p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                       />

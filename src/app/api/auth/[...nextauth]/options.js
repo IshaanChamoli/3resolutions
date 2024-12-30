@@ -31,7 +31,8 @@ export const options = {
               lastLogin: serverTimestamp(),
               provider: account.provider,
               providerId: account.providerAccountId,
-              imageCount: 0
+              imageCount: 0,
+              lockedIn: true
             };
             console.log("Creating new user with data:", userData);
             await setDoc(userRef, userData);
