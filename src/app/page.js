@@ -1,30 +1,36 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useSession, signIn, signOut } from "next-auth/react";
 
 export default function Home() {
+  const { data: session, status } = useSession();
   const [resolutions, setResolutions] = useState(['', '', '']);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [isEditing, setIsEditing] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedResolutions = localStorage.getItem('resolutions');
-      if (savedResolutions) {
-        setResolutions(JSON.parse(savedResolutions));
+    if (session) {
+      try {
+        const savedResolutions = localStorage.getItem(`resolutions-${session.user.email}`);
+        if (savedResolutions) {
+          setResolutions(JSON.parse(savedResolutions));
+        }
+      } catch (error) {
+        console.error('Error loading resolutions:', error);
       }
-    } catch (error) {
-      console.error('Error loading resolutions:', error);
     }
-  }, []);
+  }, [session]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('resolutions', JSON.stringify(resolutions));
-    } catch (error) {
-      console.error('Error saving resolutions:', error);
+    if (session) {
+      try {
+        localStorage.setItem(`resolutions-${session.user.email}`, JSON.stringify(resolutions));
+      } catch (error) {
+        console.error('Error saving resolutions:', error);
+      }
     }
-  }, [resolutions]);
+  }, [resolutions, session]);
 
   const handleResolutionChange = (index, value) => {
     const newResolutions = [...resolutions];
@@ -96,10 +102,31 @@ export default function Home() {
     window.open(linkedInUrl, '_blank', 'width=600,height=600');
   };
 
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-pulse text-2xl mb-3">✨</div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white relative">
+      {session && (
+        <button
+          onClick={() => signOut()}
+          className="fixed bottom-4 right-4 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium transition-colors flex items-center gap-2"
+        >
+          <span>Sign out</span>
+          <span className="text-xs">({session.user.email})</span>
+        </button>
+      )}
+
       <div className="max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
-        {/* Header Section */}
+        {/* Header Section - Same for both signed in and signed out states */}
         <div className="text-center pt-16 mb-12">
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
             3Resolutions 🎉
@@ -112,8 +139,23 @@ export default function Home() {
 
         {/* Main Content */}
         <div className={`flex-grow ${!isEditing ? 'mb-8' : ''}`}>
-          {isEditing ? (
-            /* Resolution Input Form */
+          {!session ? (
+            // Sign In View
+            <div className="h-full flex flex-col justify-center">
+              <div className="space-y-8 mb-12">
+                <div className="flex items-center justify-center">
+                  <button
+                    onClick={() => signIn('google', { callbackUrl: '/' })}
+                    className="px-8 py-3 rounded-full bg-white border border-gray-300 shadow-sm hover:shadow-md transition-shadow flex items-center gap-3"
+                  >
+                    <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                    Sign in with Google
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : isEditing ? (
+            // Resolution Input Form - Only shown when signed in
             <div className="h-full flex flex-col justify-center">
               <div className="space-y-8 mb-12">
                 {[1, 2, 3].map((num, index) => (
@@ -147,14 +189,14 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* Generated Image View - Keep compact */
+            // Generated Image View - remains the same
             <div className="flex flex-col items-center">
               <div className="aspect-square w-full max-w-[400px] rounded-xl overflow-hidden shadow-lg">
                 {isGenerating ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                       <div className="animate-pulse text-2xl mb-3">🎨</div>
-                      <p className="text-gray-600">Creating your resolution puzzle...</p>
+                      <p className="text-gray-600">Merging your resolutions together...</p>
                     </div>
                   </div>
                 ) : generatedImage ? (
@@ -169,7 +211,7 @@ export default function Home() {
               {!isEditing && (
                 <>
                   <p className="text-sm text-gray-500 mt-4 text-center mb-9">
-                  Can others guess what your resolutions are? Let's find out! 🤔
+                  Can people guess what your resolutions are? Let's find out! 🤔
                   </p>
                   <div className="space-y-3 w-full">
                     {generatedImage && (
@@ -177,7 +219,7 @@ export default function Home() {
                         className="w-full px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-lg"
                         onClick={handleLinkedInShare}
                       >
-                        Share on LinkedIn 🚀
+                        Share on LinkedIn &nbsp;🚀
                       </button>
                     )}
                   </div>
