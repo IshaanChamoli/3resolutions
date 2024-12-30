@@ -123,8 +123,9 @@ export default function Home() {
   const handleLinkedInShare = () => {
     if (generatedImage) {
       const shareText = 'Visit 3resolutions.com';
+      const imageUrl = generatedImage; // This is already the Firebase Storage URL
       
-      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`;
+      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(imageUrl)}`;
       
       window.open(linkedInUrl, '_blank', 'width=600,height=600');
     }
