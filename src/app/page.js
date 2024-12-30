@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -101,6 +103,25 @@ export default function Home() {
     
     window.open(linkedInUrl, '_blank', 'width=600,height=600');
   };
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      // Test Firestore connection
+      const checkUser = async () => {
+        try {
+          const userRef = doc(db, "users", session.user.email);
+          const userSnap = await getDoc(userRef);
+          console.log("Firestore user exists?", userSnap.exists());
+          if (userSnap.exists()) {
+            console.log("User data:", userSnap.data());
+          }
+        } catch (error) {
+          console.error("Error checking user:", error);
+        }
+      };
+      checkUser();
+    }
+  }, [session]);
 
   if (status === "loading") {
     return (
