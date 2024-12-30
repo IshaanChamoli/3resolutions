@@ -4,27 +4,27 @@ import { useState, useEffect } from 'react';
 export default function Home() {
   const [resolutions, setResolutions] = useState(['', '', '']);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [userCount, setUserCount] = useState(127);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [isEditing, setIsEditing] = useState(true);
 
   useEffect(() => {
-    const savedState = localStorage.getItem('3resolutions');
-    if (savedState) {
-      const { resolutions, generatedImage, isEditing } = JSON.parse(savedState);
-      setResolutions(resolutions);
-      setGeneratedImage(generatedImage);
-      setIsEditing(isEditing);
+    try {
+      const savedResolutions = localStorage.getItem('resolutions');
+      if (savedResolutions) {
+        setResolutions(JSON.parse(savedResolutions));
+      }
+    } catch (error) {
+      console.error('Error loading resolutions:', error);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('3resolutions', JSON.stringify({
-      resolutions,
-      generatedImage,
-      isEditing
-    }));
-  }, [resolutions, generatedImage, isEditing]);
+    try {
+      localStorage.setItem('resolutions', JSON.stringify(resolutions));
+    } catch (error) {
+      console.error('Error saving resolutions:', error);
+    }
+  }, [resolutions]);
 
   const handleResolutionChange = (index, value) => {
     const newResolutions = [...resolutions];
@@ -100,28 +100,22 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
         {/* Header Section */}
-        <div className="text-center pt-12 mb-12">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
+        <div className="text-center pt-16 mb-12">
+          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
             3Resolutions 🎉
           </h1>
-          <p className="text-gray-600 text-lg mb-6">
+          <p className="text-gray-600 text-xl mb-6">
             Set your resolutions & make your friends guess!<br/>
             We'll help you stick to them <span className="text-purple-600 font-semibold">💪</span>
           </p>
-          <button 
-            className="px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity"
-            onClick={handleLinkedInShare}
-          >
-            Share on LinkedIn 🚀
-          </button>
         </div>
 
         {/* Main Content */}
         <div className={`flex-grow ${!isEditing ? 'mb-8' : ''}`}>
           {isEditing ? (
-            /* Resolution Input Form - Centered vertically when editing */
+            /* Resolution Input Form */
             <div className="h-full flex flex-col justify-center">
-              <div className="space-y-8">
+              <div className="space-y-8 mb-12">
                 {[1, 2, 3].map((num, index) => (
                   <div 
                     key={num}
@@ -142,10 +136,11 @@ export default function Home() {
                     </div>
                   </div>
                 ))}
+                <br />
                 <button 
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="w-full mt-8 px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="w-full mt-16 px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   {isGenerating ? 'Creating Your Puzzle... 🎨' : 'Generate AI Art 🎨'}
                 </button>
@@ -154,34 +149,38 @@ export default function Home() {
           ) : (
             /* Generated Image View - Keep compact */
             <div className="flex flex-col items-center">
-              {isGenerating ? (
-                <div className="aspect-square w-full max-w-[400px] flex items-center justify-center bg-gray-50 rounded-xl mb-4">
-                  <div className="text-center">
-                    <div className="animate-pulse text-2xl mb-3">🎨</div>
-                    <p className="text-gray-600">Creating your resolution puzzle...</p>
+              <div className="aspect-square w-full max-w-[400px] rounded-xl overflow-hidden shadow-lg">
+                {isGenerating ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                    <div className="text-center">
+                      <div className="animate-pulse text-2xl mb-3">🎨</div>
+                      <p className="text-gray-600">Creating your resolution puzzle...</p>
+                    </div>
                   </div>
-                </div>
-              ) : generatedImage ? (
-                <div className="aspect-square w-full max-w-[400px] rounded-xl overflow-hidden shadow-lg">
+                ) : generatedImage ? (
                   <img 
                     src={generatedImage} 
                     alt="AI-generated visualization of your resolutions" 
                     className="w-full h-full object-contain bg-white"
                   />
-                </div>
-              ) : null}
+                ) : null}
+              </div>
               
               {!isEditing && (
                 <>
-                  <p className="text-sm text-gray-500 mt-3 text-center mb-4">
+                  <p className="text-sm text-gray-500 mt-4 text-center mb-9">
                     Can your friends guess your resolutions from this image? 🤔
                   </p>
-                  <button 
-                    onClick={() => setIsEditing(true)}
-                    className="w-full px-8 py-2.5 rounded-full border-2 border-gray-300 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
-                  >
-                    Edit ✏️
-                  </button>
+                  <div className="space-y-3 w-full">
+                    {generatedImage && (
+                      <button 
+                        className="w-full px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-lg"
+                        onClick={handleLinkedInShare}
+                      >
+                        Share on LinkedIn 🚀
+                      </button>
+                    )}
+                  </div>
                 </>
               )}
             </div>
