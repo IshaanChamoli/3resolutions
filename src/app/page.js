@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, increment } from 'firebase/firestore';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -67,6 +67,23 @@ export default function Home() {
       alert('Please fill in all three resolutions!');
       return;
     }
+
+    // Check image count limit before proceeding
+    try {
+      const userRef = doc(db, "users", session.user.email);
+      const userDoc = await getDoc(userRef);
+      const userData = userDoc.data();
+      const imageCount = userData?.imageCount || 0;
+
+      if (imageCount >= 5) {
+        alert('Unable to generate more images. Max limit reached for your account!');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking image count:', error);
+      alert('Something went wrong. Please try again.');
+      return;
+    }
     
     setIsEditing(false);
     setIsGenerating(true);
@@ -77,6 +94,8 @@ export default function Home() {
         await setDoc(userRef, {
           resolutions: resolutions.join(','),
           lastUpdated: new Date().toISOString(),
+          // Increment the image count
+          imageCount: increment(1)
         }, { merge: true });
         console.log('Resolutions saved to Firestore');
       }
@@ -122,7 +141,19 @@ export default function Home() {
 
   const handleLinkedInShare = () => {
     if (generatedImage) {
-      const shareText = 'Visit 3resolutions.com';
+      const shareText = `🌟 Guess My 2025 Resolutions! 🌟
+
+The attached image (link) hints at what my top 3 resolutions are. Can you guess them? 🤔
+
+Drop your guesses in the comments below!!!
+
+Want to create an AI image of your own resolutions and challenge your network? 🎯 Visit http://3resolutions.com and let the guessing games begin!
+
+
+P.S. If 500+ people commit to their resolutions, the developers have committed to build additional tech to keep each of us personally accountable to the resolutions we list and share! 💪
+So go and commit to your New Year's resolutions now!
+
+#NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
       const imageUrl = generatedImage; // This is already the Firebase Storage URL
       
       const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(imageUrl)}`;

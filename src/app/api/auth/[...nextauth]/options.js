@@ -1,6 +1,6 @@
 import GoogleProvider from "next-auth/providers/google"
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, increment } from 'firebase/firestore';
 
 export const options = {
   providers: [
@@ -30,7 +30,8 @@ export const options = {
               createdAt: serverTimestamp(),
               lastLogin: serverTimestamp(),
               provider: account.provider,
-              providerId: account.providerAccountId
+              providerId: account.providerAccountId,
+              imageCount: 0
             };
             console.log("Creating new user with data:", userData);
             await setDoc(userRef, userData);
