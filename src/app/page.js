@@ -4,7 +4,8 @@ import { useState } from 'react';
 export default function Home() {
   const [resolutions, setResolutions] = useState(['', '', '']);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [userCount, setUserCount] = useState(127); // Example starting number
+  const [userCount, setUserCount] = useState(127);
+  const [generatedImage, setGeneratedImage] = useState(null);
 
   const handleResolutionChange = (index, value) => {
     const newResolutions = [...resolutions];
@@ -12,14 +13,58 @@ export default function Home() {
     setResolutions(newResolutions);
   };
 
+  const generatePrompt = (resolutions) => {
+    return `Create a single unified 2D illustration that cleverly combines these three New Year's resolutions into one cohesive image: "${resolutions[0]}", "${resolutions[1]}", and "${resolutions[2]}".
+
+    Art Style:
+    - Clean, modern 2D illustration
+    - Warm, optimistic colors
+    - Simple shapes and clear symbols
+    - Minimal but meaningful details
+    - Think modern minimalist illustration
+
+    Key Requirements:
+    - Blend all three resolutions into ONE seamless image (not separate sections)
+    - Use objects and symbols that naturally interact with each other
+    - Keep it simple and easy to understand
+    - Add subtle decorative elements that tie everything together
+    - Create a natural flow between all elements
+
+    Mood: Optimistic and clean, making viewers enjoy discovering how the resolutions connect in unexpected ways.
+
+    The final image should look like a single, cohesive illustration where all elements work together to tell one story.`;
+  };
+
   const handleGenerate = async () => {
     if (resolutions.some(r => !r.trim())) {
       alert('Please fill in all three resolutions!');
       return;
     }
+    
     setIsGenerating(true);
-    // TODO: AI Generation will go here
-    setTimeout(() => setIsGenerating(false), 2000); // Temporary simulation
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: generatePrompt(resolutions)
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate image');
+      }
+
+      const data = await response.json();
+      setGeneratedImage(data.imageUrl);
+    } catch (error) {
+      console.error('Error generating image:', error);
+      alert('Failed to generate image. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -69,6 +114,22 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Generated Image Display */}
+        {generatedImage && (
+          <div className="mt-8">
+            <div className="rounded-xl overflow-hidden shadow-lg">
+              <img 
+                src={generatedImage} 
+                alt="AI-generated visualization of your resolutions" 
+                className="w-full h-auto"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-2 text-center">
+              Can your friends guess your resolutions from this image? 🤔
+            </p>
+          </div>
+        )}
+
         {/* Generate/Share Buttons */}
         <div className="mt-12 text-center space-y-4">
           <button 
@@ -79,12 +140,17 @@ export default function Home() {
             {isGenerating ? 'Creating Your Puzzle... 🎨' : 'Generate AI Art 🎨'}
           </button>
           
-          <button 
-            disabled={!isGenerating}
-            className="w-full px-8 py-3 rounded-full border-2 border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:hover:bg-white"
-          >
-            Share on LinkedIn 🚀
-          </button>
+          {generatedImage && (
+            <button 
+              className="w-full px-8 py-3 rounded-full border-2 border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition-colors"
+              onClick={() => {
+                // TODO: Add LinkedIn sharing logic
+                alert('LinkedIn sharing coming soon!');
+              }}
+            >
+              Share on LinkedIn 🚀
+            </button>
+          )}
         </div>
 
         {/* Footer Note */}
