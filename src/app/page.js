@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -71,25 +71,49 @@ export default function Home() {
     setIsEditing(false);
     setIsGenerating(true);
     try {
+      // First save resolutions to Firestore
+      if (session?.user?.email) {
+        const userRef = doc(db, "users", session.user.email);
+        await setDoc(userRef, {
+          resolutions: resolutions.join(','),
+          lastUpdated: new Date().toISOString(),
+        }, { merge: true });
+        console.log('Resolutions saved to Firestore');
+      }
+
+      console.log('Calling generate-image API...');
       const response = await fetch('/api/generate-image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: generatePrompt(resolutions)
+          prompt: generatePrompt(resolutions),
+          userId: session?.user?.email,
+          userName: session?.user?.name || 'anonymous-user'
         }),
       });
 
+      const data = await response.json();
+      console.log('API response:', data);
+
       if (!response.ok) {
-        throw new Error('Failed to generate image');
+        throw new Error(data.details || data.error || 'Failed to generate image');
       }
 
-      const data = await response.json();
       setGeneratedImage(data.imageUrl);
+
+      // Save the permanent Firebase Storage URL to Firestore
+      if (session?.user?.email) {
+        const userRef = doc(db, "users", session.user.email);
+        await setDoc(userRef, {
+          lastGeneratedImage: data.imageUrl,
+        }, { merge: true });
+        console.log('Permanent image URL saved to Firestore');
+      }
     } catch (error) {
-      console.error('Error generating image:', error);
-      alert('Failed to generate image. Please try again.');
+      console.error('Detailed error in handleGenerate:', error);
+      alert(`Failed to generate image: ${error.message}`);
       setIsEditing(true);
     } finally {
       setIsGenerating(false);
@@ -97,29 +121,37 @@ export default function Home() {
   };
 
   const handleLinkedInShare = () => {
-    const shareText = `🎯 Can you guess my 3 New Year's resolutions from this AI-generated image?\n\n🤔 Take a guess in the comments!\n\n#NewYearResolutions #AI #3Resolutions`;
-    
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`;
-    
-    window.open(linkedInUrl, '_blank', 'width=600,height=600');
+    if (generatedImage) {
+      // Create the share URL with the encoded image URL
+      const shareUrl = `${window.location.origin}/share/${encodeURIComponent(generatedImage)}`;
+      
+      const shareText = `🎯 Can you guess my 3 New Year's resolutions from this AI-generated image?\n\n🤔 Take a guess in the comments!\n\n#NewYearResolutions #AI #3Resolutions`;
+      
+      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+      
+      window.open(linkedInUrl, '_blank', 'width=600,height=600');
+    }
   };
 
   useEffect(() => {
     if (session?.user?.email) {
-      // Test Firestore connection
-      const checkUser = async () => {
+      const loadUserData = async () => {
         try {
           const userRef = doc(db, "users", session.user.email);
           const userSnap = await getDoc(userRef);
-          console.log("Firestore user exists?", userSnap.exists());
           if (userSnap.exists()) {
-            console.log("User data:", userSnap.data());
+            const userData = userSnap.data();
+            if (userData.resolutions) {
+              const loadedResolutions = userData.resolutions.split(',');
+              setResolutions(loadedResolutions);
+              console.log('Loaded resolutions from Firestore:', loadedResolutions);
+            }
           }
         } catch (error) {
-          console.error("Error checking user:", error);
+          console.error('Error loading user data:', error);
         }
       };
-      checkUser();
+      loadUserData();
     }
   }, [session]);
 
