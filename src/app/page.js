@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, increment, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -11,6 +11,8 @@ export default function Home() {
   const [generatedImage, setGeneratedImage] = useState(null);
   const [isEditing, setIsEditing] = useState(true);
   const [isOptedIn, setIsOptedIn] = useState(true);
+  const [commitCount, setCommitCount] = useState(0);
+  const [isCommitCountLoading, setIsCommitCountLoading] = useState(true);
 
   useEffect(() => {
     if (session) {
@@ -34,28 +36,6 @@ export default function Home() {
       }
     }
   }, [resolutions, session]);
-
-  useEffect(() => {
-    if (session?.user?.email) {
-      const initializeUser = async () => {
-        const userRef = doc(db, "users", session.user.email);
-        const userDoc = await getDoc(userRef);
-        
-        if (!userDoc.exists()) {
-          // New user - set default lockedIn status
-          await setDoc(userRef, {
-            lockedIn: true,
-            createdAt: new Date().toISOString()
-          });
-        } else {
-          // Existing user - load their lockedIn status
-          setIsOptedIn(userDoc.data().lockedIn ?? true);
-        }
-      };
-      
-      initializeUser();
-    }
-  }, [session]);
 
   const handleResolutionChange = (index, value) => {
     const newResolutions = [...resolutions];
@@ -111,16 +91,15 @@ export default function Home() {
     setIsEditing(false);
     setIsGenerating(true);
     try {
-      // Save resolutions and update lockedIn status to Firestore
+      // Save resolutions and current isOptedIn status to Firestore
       if (session?.user?.email) {
         const userRef = doc(db, "users", session.user.email);
         await setDoc(userRef, {
           resolutions: resolutions.join(','),
           lastUpdated: new Date().toISOString(),
           imageCount: increment(1),
-          lockedIn: isOptedIn, // Update lockedIn status
+          lockedIn: isOptedIn, // We just use the current state value
         }, { merge: true });
-        console.log('Resolutions and lockedIn status saved to Firestore');
       }
 
       console.log('Calling generate-image API...');
@@ -207,7 +186,39 @@ So go and commit to your New Year's resolutions now!
     }
   }, [session]);
 
-  if (status === "loading") {
+  useEffect(() => {
+    const fetchCommitCount = async () => {
+      setIsCommitCountLoading(true);
+      try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("lockedIn", "==", true));
+        const querySnapshot = await getDocs(q);
+        setCommitCount(querySnapshot.size);
+      } catch (error) {
+        console.error('Error fetching commit count:', error);
+      } finally {
+        setIsCommitCountLoading(false);
+      }
+    };
+
+    fetchCommitCount();
+
+    const unsubscribe = onSnapshot(
+      query(collection(db, "users"), where("lockedIn", "==", true)),
+      (snapshot) => {
+        setCommitCount(snapshot.size);
+        setIsCommitCountLoading(false);
+      },
+      (error) => {
+        console.error('Error in commit count listener:', error);
+        setIsCommitCountLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  if (status === "loading" || isCommitCountLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -253,7 +264,7 @@ So go and commit to your New Year's resolutions now!
 
       <div className="max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
         {/* Header Section */}
-        <div className="text-center pt-12 mb-10">
+        <div className="text-center pt-12 mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
             3resolutions &nbsp;</h1>
           <span className="inline-block animate-party text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
@@ -270,36 +281,49 @@ So go and commit to your New Year's resolutions now!
               <span className="text-purple-600 font-bold min-w-[1.25rem]">3.</span>
               Challenge your LinkedIn network to guess
             </p>
-            <p className="flex items-start gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
+            <div className="flex items-start gap-2 hover:text-gray-700 transition-colors">
               <span className="text-purple-600 font-bold min-w-[1.25rem]">4.</span>
               <span className="flex flex-col gap-1">
-                <span className="whitespace-normal text-sm md:text-base">
+                <span className="text-sm md:text-base pb-1">
                   If 500+ people commit, we'll add tech to keep you personally accountable!
                 </span>
-                <label className={`flex items-center gap-2 text-purple-600 whitespace-nowrap cursor-${isEditing ? 'pointer' : 'not-allowed'} ${!isEditing && 'opacity-75'}`}>
-                  <input
-                    type="checkbox"
-                    checked={isOptedIn}
-                    onChange={(e) => setIsOptedIn(e.target.checked)}
-                    disabled={!isEditing}
-                    className={`h-4 w-4 rounded border-purple-400 text-purple-600 focus:ring-purple-500 
-                      ${!isEditing && 'cursor-not-allowed opacity-75'}`}
-                  />
-                  <span className={`text-sm font-medium ${!isEditing && 'opacity-75'}`}>
-                    {isEditing ? 'Lock in!' : (isOptedIn ? 'Locked in :)' : 'Not locked in :(')}
-                  </span>
-                </label>
+                <div className="flex items-center justify-between pt-1">
+                  <label className={`flex items-center gap-2 text-purple-600 whitespace-nowrap cursor-${isEditing ? 'pointer' : 'not-allowed'} ${!isEditing && 'opacity-75'}`}>
+                    <input
+                      type="checkbox"
+                      checked={isOptedIn}
+                      onChange={(e) => setIsOptedIn(e.target.checked)}
+                      disabled={!isEditing}
+                      className={`h-4 w-4 rounded border-purple-400 text-purple-600 focus:ring-purple-500 
+                        ${!isEditing && 'cursor-not-allowed opacity-75'}`}
+                    />
+                    <span className={`text-sm font-medium ${!isEditing && 'opacity-75'}`}>
+                      {isEditing ? 'Lock in!' : (isOptedIn ? 'Locked in! : )' : 'Not locked in :(')}
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-2 w-[140px]">
+                    <div className="text-sm font-medium text-purple-600 min-w-[45px]">
+                      {commitCount}/500
+                    </div>
+                    <div className="flex-grow h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-500 ease-out"
+                        style={{ width: `${Math.min((commitCount / 500) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </span>
-            </p>
+            </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className={`flex-grow ${!isEditing ? 'mb-8' : ''}`}>
+        <div className={`flex-grow ${!isEditing ? 'mb-4' : ''}`}>
           {!session ? (
             // Sign In View
             <div className="h-full flex flex-col justify-center">
-              <div className="space-y-8 mb-12">
+              <div className="space-y-8 mb-12 pt-8">
                 <div className="flex items-center justify-center">
                   <button
                     onClick={() => signIn('google', { callbackUrl: '/' })}
@@ -348,7 +372,7 @@ So go and commit to your New Year's resolutions now!
           ) : (
             // Generated Image View - remains the same
             <div className="flex flex-col items-center">
-              <div className="aspect-square w-full max-w-[400px] rounded-xl overflow-hidden shadow-lg">
+              <div className="aspect-square w-full max-w-[360px] rounded-xl overflow-hidden shadow-lg">
                 {isGenerating ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center">
