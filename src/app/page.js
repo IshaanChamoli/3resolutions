@@ -89,9 +89,9 @@ export default function Home() {
   };
 
   const handleLinkedInShare = () => {
-    const shareText = 'Visit 3resolutions.com';
+    const shareText = `🎯 Can you guess my 3 New Year's resolutions from this AI-generated image?\n\n🤔 Take a guess in the comments!\n\n#NewYearResolutions #AI #3Resolutions`;
     
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&title=${encodeURIComponent(shareText)}&summary=&source=&image=${generatedImage}&url=${encodeURIComponent(window.location.href)}`;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`;
     
     window.open(linkedInUrl, '_blank', 'width=600,height=600');
   };
