@@ -1,10 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static generation for dynamic routes if needed
-  generateStaticParams: async () => {
-    // You could pre-generate some common paths here if needed
-    return [];
-  }
+  images: {
+    domains: ['storage.googleapis.com'], // Add any other domains you're serving images from
+  },
+  async headers() {
+    return [
+      {
+        source: '/share/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, must-revalidate',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

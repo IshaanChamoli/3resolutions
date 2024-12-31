@@ -58,7 +58,6 @@ Make the representation of each resolution very clear and guessable, like a visu
       return;
     }
 
-    // Check image count limit before proceeding
     try {
       const userRef = doc(db, "users", session.user.email);
       const userDoc = await getDoc(userRef);
@@ -70,11 +69,16 @@ Make the representation of each resolution very clear and guessable, like a visu
         return;
       }
 
-      // Save the resolutions array and update lockedIn status
+      // Create the share URL using 3resolutions.com
+      const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
+      const shareUrl = `https://3resolutions.com/share/${urlName}`;
+
+      // Save the resolutions array, update lockedIn status, and include the shareUrl
       await setDoc(userRef, {
         resolutions: resolutions,
         lastUpdated: serverTimestamp(),
-        lockedIn: isOptedIn  // This will update lockedIn based on checkbox state
+        lockedIn: isOptedIn,
+        shareUrl: shareUrl  // Store the production share URL
       }, { merge: true });
       
       setIsEditing(false);
@@ -129,8 +133,8 @@ Make the representation of each resolution very clear and guessable, like a visu
     if (generatedImage) {
       // Convert spaces to hyphens for cleaner URL
       const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
-      const domain = window.location.origin.replace(/^https?:\/\//, '').replace(/^www\./, '');
-      const shareUrl = `${domain}/share/${urlName}`;
+      // Always use 3resolutions.com domain for sharing
+      const shareUrl = `https://3resolutions.com/share/${urlName}`;
 
       const shareText = `🌟 Guess My 2025 Resolutions! 🌟
 
@@ -385,7 +389,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                           Go to LinkedIn &nbsp;🚀
                         </button>
                         <p className="text-xs text-gray-400 text-center mt-2">
-                          {`${window.location.origin}/share/${session.user.name.replace(/\s+/g, '-').toLowerCase()}`}
+                          {`https://3resolutions.com/share/${session.user.name.replace(/\s+/g, '-').toLowerCase()}`}
                         </p>
                       </>
                     )}
