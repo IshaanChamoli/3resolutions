@@ -170,18 +170,10 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
         // Use a much shorter text for mobile
         const mobileShareText = "testing...";
         const encodedText = encodeURIComponent(mobileShareText);
-        const linkedInAppUrl = `linkedin://shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&text=${encodedText}&source=3resolutions`;
-        
-        // Fallback URL for if app isn't installed
-        const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodedText}`;
+        const linkedInAppUrl = `linkedin://shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&text=${encodedText}`;
         
         // Try to open LinkedIn app
         window.location.href = linkedInAppUrl;
-        
-        // Set a timeout to redirect to mobile web version if app doesn't open
-        setTimeout(() => {
-          window.location.href = linkedInMobileUrl;
-        }, 1000);
       } else {
         // Desktop version remains exactly the same
         const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
