@@ -44,12 +44,7 @@ export default function Home() {
   };
 
   const generatePrompt = (resolutions) => {
-    // Sanitize the resolutions to remove any problematic characters
-    const sanitizedResolutions = resolutions.map(r => 
-      r.replace(/[^\w\s,.!?-]/g, '')
-    );
-    
-    return `Create a single unified, whimsical cartoon illustration that cleverly combines these three resolutions into one seamless scene: "${sanitizedResolutions[0]}", "${sanitizedResolutions[1]}", and "${sanitizedResolutions[2]}". Use symbolic objects and playful icons that flow and interact with each other naturally - avoid any human figures. The style should be colorful and modern, like a polished vector illustration. All elements should be part of one cohesive composition where each object naturally leads into the next. Make it inspirational and positive.`;
+    return `Generate one image that represents these three New Year's resolutions: ${resolutions.join(', ')}.`;
   };
 
   const handleGenerate = async () => {
