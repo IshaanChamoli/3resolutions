@@ -132,7 +132,7 @@ The attached image (link) hints at what my top 3 resolutions are. Can you guess 
 Drop your guesses in the comments below!!!
 
 Want to create an AI image of your own resolutions and challenge your network? 🎯 
-Visit http://3resolutions.com and let the guessing games begin!
+Visit https://3resolutions.com and let the guessing games begin!
 
 
 P.S. If 500+ people commit to their resolutions, the developers have committed to build additional tech to keep each of us personally accountable to the resolutions we list and share! 💪
