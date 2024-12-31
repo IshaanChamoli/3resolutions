@@ -1,6 +1,7 @@
 import GoogleProvider from "next-auth/providers/google"
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { formatNameForUrl } from '@/app/utils/nameUtils';
 
 export const options = {
   providers: [
@@ -26,6 +27,7 @@ export const options = {
             const userData = {
               email: user.email,
               name: user.name,
+              formattedName: formatNameForUrl(user.name),
               image: user.image,
               createdAt: serverTimestamp(),
               lastLogin: serverTimestamp(),
@@ -41,6 +43,7 @@ export const options = {
             const updateData = {
               lastLogin: serverTimestamp(),
               name: user.name,
+              formattedName: formatNameForUrl(user.name),
               image: user.image
             };
             console.log("Updating existing user with data:", updateData);

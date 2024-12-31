@@ -2,33 +2,34 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import Image from 'next/image';
 import Head from 'next/head';
+import { formatNameForUrl } from '@/app/utils/nameUtils';
 
 export async function generateMetadata({ searchParams }) {
   const { name } = searchParams;
   if (!name) return { title: 'Content Not Found' };
 
   try {
-    const searchName = decodeURIComponent(name).trim();
+    const formattedSearchName = name.toLowerCase();
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("name", "==", searchName));
+    const q = query(usersRef, where("formattedName", "==", formattedSearchName));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
       const userData = querySnapshot.docs[0].data();
-      const shareUrl = `https://3resolutions.com/share?name=${encodeURIComponent(searchName)}`;
+      const shareUrl = `https://3resolutions.com/share?name=${formattedSearchName}`;
       
       return {
-        title: `${searchName}'s 2025 Goals | 3resolutions`,
+        title: `${userData.name}'s 2025 Goals | 3resolutions`,
         description: "Can you guess their New Year resolutions from this AI-generated image?",
         openGraph: {
-          title: `${searchName}'s 2025 Goals | 3resolutions`,
+          title: `${userData.name}'s 2025 Goals | 3resolutions`,
           description: "Can you guess their New Year resolutions from this AI-generated image?",
           images: [userData.lastGeneratedImage],
           url: shareUrl,
         },
         twitter: {
           card: 'summary_large_image',
-          title: `${searchName}'s 2025 Goals | 3resolutions`,
+          title: `${userData.name}'s 2025 Goals | 3resolutions`,
           description: "Can you guess their New Year resolutions from this AI-generated image?",
           images: [userData.lastGeneratedImage],
         },
@@ -57,9 +58,9 @@ export default async function SharePage({ searchParams }) {
   let creatorName = null;
 
   try {
-    const searchName = decodeURIComponent(name).trim();
+    const formattedSearchName = name.toLowerCase();
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("name", "==", searchName));
+    const q = query(usersRef, where("formattedName", "==", formattedSearchName));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {

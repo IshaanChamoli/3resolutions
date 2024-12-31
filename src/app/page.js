@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, increment, collection, query, where, getDocs, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { formatNameForUrl } from '@/app/utils/nameUtils';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -69,15 +70,18 @@ Make the representation of each resolution very clear and guessable, like a visu
         return;
       }
 
-      // Create the share URL using 3resolutions.com
-      const shareUrl = `https://3resolutions.com/share?name=${encodeURIComponent(session.user.name)}`;
+      // Format the name for the URL
+      const formattedName = formatNameForUrl(session.user.name);
+      const shareUrl = `https://3resolutions.com/share?name=${formattedName}`;
 
-      // Save the resolutions array, update lockedIn status, and include the shareUrl
+      // Save both the original name and formatted name
       await setDoc(userRef, {
         resolutions: resolutions,
         lastUpdated: serverTimestamp(),
         lockedIn: isOptedIn,
-        shareUrl: shareUrl  // Store the production share URL
+        shareUrl: shareUrl,
+        formattedName: formattedName,
+        name: session.user.name
       }, { merge: true });
       
       setIsEditing(false);
