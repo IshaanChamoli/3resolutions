@@ -17,19 +17,20 @@ export async function generateMetadata({ searchParams }) {
     if (!querySnapshot.empty) {
       const userData = querySnapshot.docs[0].data();
       const shareUrl = `https://3resolutions.com/share?name=${formattedSearchName}`;
+      const firstName = userData.name.split(' ')[0];
       
       return {
-        title: `${userData.name}'s 2025 Goals | 3resolutions`,
+        title: `${firstName}'s 2025 Goals | Set your own resolutions!`,
         description: "Can you guess their New Year resolutions from this AI-generated image?",
         openGraph: {
-          title: `${userData.name}'s 2025 Goals | 3resolutions`,
+          title: `${firstName}'s 2025 Goals | Set your own resolutions!`,
           description: "Can you guess their New Year resolutions from this AI-generated image?",
           images: [userData.lastGeneratedImage],
           url: shareUrl,
         },
         twitter: {
           card: 'summary_large_image',
-          title: `${userData.name}'s 2025 Goals | 3resolutions`,
+          title: `${firstName}'s 2025 Goals | Set your own resolutions!`,
           description: "Can you guess their New Year resolutions from this AI-generated image?",
           images: [userData.lastGeneratedImage],
         },
@@ -87,11 +88,11 @@ export default async function SharePage({ searchParams }) {
   return (
     <>
       <Head>
-        <title>{`${creatorName}'s 2025 Goals | 3resolutions`}</title>
+        <title>{`${creatorName.split(' ')[0]}'s 2025 Goals | Set your own resolutions!`}</title>
         <meta name="description" content="Can you guess their New Year resolutions from this AI-generated image?" />
         
         {/* OpenGraph Meta Tags */}
-        <meta property="og:title" content={`${creatorName}'s 2025 Goals | 3resolutions`} />
+        <meta property="og:title" content={`${creatorName.split(' ')[0]}'s 2025 Goals | Set your own resolutions!`} />
         <meta property="og:description" content="Can you guess their New Year resolutions from this AI-generated image?" />
         <meta property="og:image" content={imageUrl} />
         <meta property="og:url" content={shareUrl} />
