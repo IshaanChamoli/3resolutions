@@ -19,7 +19,6 @@ const bucket = storage.bucket(process.env.GOOGLE_CLOUD_BUCKET_NAME);
 
 // Helper function to sanitize name for URL
 function sanitizeNameForUrl(name) {
-  // Add a random string to make it unique but still readable
   const randomStr = Math.random().toString(36).substring(2, 8);
   return `${name.toLowerCase()
     .replace(/[^a-z0-9]/g, '-')
@@ -44,17 +43,47 @@ async function deleteUserPreviousImages(userId, userName) {
 
 async function addWatermark(imageBuffer) {
   try {
-    console.log('Starting watermark process with image size:', imageBuffer.length);
-    
-    // Get image dimensions first
-    const metadata = await sharp(imageBuffer).metadata();
-    console.log('Image metadata:', {
-      width: metadata.width,
-      height: metadata.height,
-      format: metadata.format
-    });
+    const watermarkSvg = `
+      <svg width="900" height="100">
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#9333EA;stop-opacity:1" />
+          </linearGradient>
+          <filter id="shadow">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+        <style>
+          .background {
+            fill: rgba(255, 255, 255, 0.85);
+            filter: url(#shadow);
+            rx: 16;
+            ry: 16;
+          }
+          .text { 
+            fill: url(#gradient);
+            font-size: 52px;
+            font-weight: 700; 
+            font-family: Arial, Helvetica, sans-serif;
+            letter-spacing: 1px;
+            word-spacing: 2px;
+            text-decoration: underline;
+            text-decoration-thickness: 3px;
+            text-underline-offset: 8px;
+          }
+        </style>
+        <rect class="background" x="10" y="10" width="880" height="80" />
+        <text x="40" y="50%" text-anchor="start" class="text" dy=".35em">
+          3resolutions.com      
+        </text>
+      </svg>
+    `;
 
-    const watermarkedImage = await sharp(imageBuffer)
+    const image = sharp(imageBuffer);
+    const metadata = await image.metadata();
+
+    const watermarkedImage = await image
       .composite([{
         input: Buffer.from(watermarkSvg),
         top: metadata.height - 100 - 40,
@@ -63,98 +92,57 @@ async function addWatermark(imageBuffer) {
       .jpeg({ quality: 100 })
       .toBuffer();
 
-    console.log('Watermark added successfully, new size:', watermarkedImage.length);
     return watermarkedImage;
   } catch (error) {
-    console.error('Detailed watermark error:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code
-    });
-    throw new Error(`Watermark Error: ${error.message}`);
+    console.error('Error adding watermark:', error);
+    throw error;
   }
 }
 
-// Add this SVG definition before the uploadImageToGCS function
-const watermarkSvg = `
-  <svg width="900" height="100">
-    <defs>
-      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
-        <stop offset="100%" style="stop-color:#9333EA;stop-opacity:1" />
-      </linearGradient>
-      <filter id="shadow">
-        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
-      </filter>
-    </defs>
-    <style>
-      .background {
-        fill: rgba(255, 255, 255, 0.85);
-        filter: url(#shadow);
-        rx: 16;
-        ry: 16;
-      }
-      .text { 
-        fill: url(#gradient);
-        font-size: 52px;
-        font-weight: 700; 
-        font-family: Arial, Helvetica, sans-serif;
-        letter-spacing: 1px;
-        word-spacing: 2px;
-        text-decoration: underline;
-        text-decoration-thickness: 3px;
-        text-underline-offset: 8px;
-      }
-    </style>
-    <rect class="background" x="10" y="10" width="880" height="80" />
-    <text x="40" y="50%" text-anchor="start" class="text" dy=".35em">
-      3resolutions.com      
-    </text>
-  </svg>
-`;
-
 async function uploadImageToGCS(imageUrl, userId, userName) {
   try {
-    console.log('Starting GCS upload process...');
-    
-    // Download DALL-E image
-    console.log('Fetching DALL-E image from URL:', imageUrl);
-    const response = await fetch(imageUrl, {
-      timeout: 15000 // 15 second timeout
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch DALL-E image: ${response.status} ${response.statusText}`);
-    }
-    const buffer = await response.arrayBuffer();
-    
-    // Process image with optimized Sharp settings
-    const watermarkedBuffer = await sharp(Buffer.from(buffer))
-      .jpeg({ quality: 80, progressive: true }) // Reduced quality, progressive loading
-      .composite([{
-        input: Buffer.from(watermarkSvg),
-        top: (await sharp(Buffer.from(buffer)).metadata()).height - 100 - 40,
-        left: (await sharp(Buffer.from(buffer)).metadata()).width - 530,
-      }])
-      .toBuffer();
+    const sanitizedName = sanitizeNameForUrl(userName);
+    await deleteUserPreviousImages(userId, userName);
 
-    // Upload to GCS with optimized settings
+    console.log('Downloading DALL-E image...');
+    const response = await fetch(imageUrl);
+    const buffer = await response.arrayBuffer();
+
+    // Add watermark before uploading
+    console.log('Adding watermark...');
+    const watermarkedBuffer = await addWatermark(Buffer.from(buffer));
+    console.log('Watermark added successfully');
+
+    // Create filename without user-specific folder
     const timestamp = Date.now();
-    const filename = `resolutions/${sanitizeNameForUrl(userName)}-${timestamp}.jpg`;
-    const file = bucket.file(filename);
+    const filename = `resolutions/${sanitizedName}-${timestamp}.jpg`;
+    console.log('Uploading to path:', filename);
     
-    await file.save(watermarkedBuffer, {
+    // Create write stream with metadata
+    const file = bucket.file(filename);
+    const writeStream = file.createWriteStream({
       metadata: {
         contentType: 'image/jpeg',
         cacheControl: 'public, max-age=31536000',
-      },
-      resumable: false // Disable resumable uploads for faster processing
+      }
     });
 
+    // Upload watermarked file
+    await new Promise((resolve, reject) => {
+      writeStream.end(watermarkedBuffer);
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+    });
+
+    console.log('File uploaded successfully');
+    
     const publicUrl = `https://storage.googleapis.com/${process.env.GOOGLE_CLOUD_BUCKET_NAME}/${filename}`;
+    console.log('Generated public URL:', publicUrl);
+    
     return publicUrl;
   } catch (error) {
-    console.error('Upload error:', error);
-    throw new Error(`Upload failed: ${error.message}`);
+    console.error('Error uploading to Google Cloud Storage:', error);
+    throw error;
   }
 }
 
