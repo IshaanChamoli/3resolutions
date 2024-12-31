@@ -60,7 +60,7 @@ export default function Home() {
       const userData = userDoc.data();
       const imageCount = userData?.imageCount || 0;
 
-      if (imageCount >= 5) {
+      if (imageCount >= 3) {
         alert('Unable to generate more images. Max limit reached for your account!');
         return;
       }
