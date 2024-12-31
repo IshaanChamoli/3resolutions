@@ -8,14 +8,14 @@ export async function generateMetadata({ searchParams }) {
   if (!name) return { title: 'Content Not Found' };
 
   try {
-    const searchName = decodeURIComponent(name);
+    const searchName = decodeURIComponent(name).trim();
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("name", "==", searchName));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
       const userData = querySnapshot.docs[0].data();
-      const shareUrl = `https://3resolutions.com/share?name=${encodeURIComponent(name)}`;
+      const shareUrl = `https://3resolutions.com/share?name=${encodeURIComponent(searchName)}`;
       
       return {
         title: `${searchName}'s 2025 Goals | 3resolutions`,
@@ -57,7 +57,7 @@ export default async function SharePage({ searchParams }) {
   let creatorName = null;
 
   try {
-    const searchName = decodeURIComponent(name);
+    const searchName = decodeURIComponent(name).trim();
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("name", "==", searchName));
     const querySnapshot = await getDocs(q);
