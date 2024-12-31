@@ -142,9 +142,11 @@ P.S. If 500+ people commit to their resolutions, the developers have promised to
 So go and lock in to your New Year's resolutions now! Happy New Year!
 
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
-      const imageUrl = `https://3resolutions.com/share?image=${encodeURIComponent(generatedImage)}&creator=${encodeURIComponent(session.user.name.split(' ')[0])}`; // Share URL through our website with creator's first name
+      // Convert spaces to hyphens for cleaner URL
+      const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
+      const shareUrl = `https://3resolutions.com/share/${urlName}`;
       
-      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(imageUrl)}`;
+      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
       
       window.open(linkedInUrl, '_blank', 'width=600,height=600');
     }
