@@ -16,9 +16,6 @@ body {
 /* Add these mobile-specific styles */
 @media (max-width: 640px) {
   html, body {
-    height: 100%;
-    overflow: hidden;
-    position: fixed;
     width: 100%;
     overscroll-behavior: none;
   }
