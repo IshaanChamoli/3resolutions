@@ -10,4 +10,30 @@
 body {
   color: var(--foreground);
   background: var(--background);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Add these mobile-specific styles */
+@media (max-width: 640px) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    overscroll-behavior: none;
+  }
+  
+  input[type="text"],
+  textarea {
+    -webkit-appearance: none;
+    border-radius: 8px;
+  }
+  
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
+  }
 }

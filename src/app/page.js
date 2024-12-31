@@ -219,43 +219,13 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
 
   return (
     <div className="min-h-screen bg-white relative pt-6 sm:pt-0">
-      {session && (
-        <button
-          onClick={() => signOut()}
-          className="fixed top-6 sm:top-4 right-4 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          Sign out
-        </button>
-      )}
-
-      <div className="fixed bottom-4 right-4 text-xs text-gray-400">
-        Made with ❤️ by{' '}
-        <a 
-          href="https://www.linkedin.com/in/ishaanchamoli/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          Ishaan
-        </a>
-        {' & '}
-        <a 
-          href="https://www.linkedin.com/in/sangeetranjan/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          Sangeet
-        </a>
-      </div>
-
       <div className="max-w-2xl mx-auto px-3 sm:px-4 min-h-screen flex flex-col">
         {/* Header Section */}
         <div className="text-center pt-6 sm:pt-12 pb-4 sm:pb-6 mb-4 sm:mb-6">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
             3resolutions &nbsp;</h1>
-          <span className="inline-block animate-party text-3xl sm:text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
-          <div className="text-gray-600 text-sm space-y-1.5 sm:space-y-2 max-w-xl mx-auto text-center px-2 sm:px-4">
+          <span className="inline-block animate-party text-2xl sm:text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
+          <div className="text-gray-600 text-xs sm:text-sm space-y-1 sm:space-y-2 max-w-xl mx-auto text-center px-2 sm:px-4">
             <p className="flex items-center justify-center gap-2 hover:text-gray-700 transition-colors">
               <span className="text-purple-600 font-bold">1.</span>
               <span>Share your top 3 resolutions for 2025</span>
@@ -327,10 +297,10 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                 {[1, 2, 3].map((num, index) => (
                   <div 
                     key={num}
-                    className="p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                    className="p-3 sm:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm sm:text-base">
                         {num}
                       </div>
                       <input
@@ -339,7 +309,12 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                         onChange={(e) => handleResolutionChange(index, e.target.value)}
                         placeholder="Enter resolution..."
                         maxLength={50}
-                        className="w-full p-1.5 sm:p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm sm:text-base"
+                        className="w-full p-1 sm:p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm sm:text-base"
+                        style={{
+                          fontSize: '14px',
+                          WebkitTextSizeAdjust: '100%',
+                          WebkitTapHighlightColor: 'transparent'
+                        }}
                       />
                     </div>
                   </div>
@@ -348,7 +323,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                 <button 
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="w-full mt-8 sm:mt-12 px-6 sm:px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="w-full mt-6 sm:mt-12 px-4 sm:px-8 py-3 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm sm:text-base"
                 >
                   {isGenerating ? 'Generating an image with your goals ✨' : 'Generate AI Art 🎨'}
                 </button>
@@ -357,7 +332,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
           ) : (
             // Generated Image View - remains the same
             <div className="flex flex-col items-center">
-              <div className="aspect-square w-full max-w-[300px] sm:max-w-[360px] mx-auto rounded-xl overflow-hidden shadow-lg">
+              <div className="aspect-square w-full max-w-[280px] sm:max-w-[360px] mx-auto rounded-xl overflow-hidden shadow-lg">
                 {isGenerating ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center">
@@ -398,6 +373,70 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
               )}
             </div>
           )}
+        </div>
+
+        {/* Desktop corner elements */}
+        <div className="hidden sm:block">
+          {session && (
+            <button
+              onClick={() => signOut()}
+              className="fixed top-4 right-4 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Sign out
+            </button>
+          )}
+          <div className="fixed bottom-10 right-4 text-xs text-gray-400">
+            Made with ❤️ by{' '}
+            <a 
+              href="https://www.linkedin.com/in/ishaanchamoli/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Ishaan
+            </a>
+            {' & '}
+            <a 
+              href="https://www.linkedin.com/in/sangeetranjan/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Sangeet
+            </a>
+          </div>
+        </div>
+
+        {/* Mobile bottom elements */}
+        <div className="sm:hidden flex flex-col items-center gap-2 mt-8 mb-8 text-center">
+          {session && (
+            <button
+              onClick={() => signOut()}
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Sign out
+            </button>
+          )}
+          <div className="text-xs text-gray-400">
+            Made with ❤️ by{' '}
+            <a 
+              href="https://www.linkedin.com/in/ishaanchamoli/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Ishaan
+            </a>
+            {' & '}
+            <a 
+              href="https://www.linkedin.com/in/sangeetranjan/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Sangeet
+            </a>
+          </div>
         </div>
       </div>
     </div>
