@@ -78,41 +78,28 @@ export default function Home() {
     setIsEditing(false);
     setIsGenerating(true);
     try {
-      // Save resolutions and current isOptedIn status to Firestore
-      if (session?.user?.email) {
-        const userRef = doc(db, "users", session.user.email);
-        await setDoc(userRef, {
-          resolutions: resolutions.join(','),
-          lastUpdated: new Date().toISOString(),
-          imageCount: increment(1),
-          lockedIn: isOptedIn, // We just use the current state value
-        }, { merge: true });
-      }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 second timeout
 
-      console.log('Calling generate-image API...');
       const response = await fetch('/api/generate-image', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: generatePrompt(resolutions),
           userId: session?.user?.email,
           userName: session?.user?.name || 'anonymous-user'
         }),
+        signal: controller.signal
       });
 
-      const data = await response.json();
-      console.log('API response:', data);
-
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
-        throw new Error(data.details || data.error || 'Failed to generate image');
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to generate image');
       }
 
-      if (!data.imageUrl) {
-        throw new Error('No image URL returned from the API');
-      }
-
+      const data = await response.json();
       setGeneratedImage(data.imageUrl);
 
       // Save the permanent Firebase Storage URL to Firestore
@@ -125,7 +112,9 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error generating image:', error);
-      alert(`Failed to generate image: ${error.message}`);
+      alert(error.message === 'The user aborted a request.' 
+        ? 'The request took too long. Please try again.'
+        : `Failed to generate image: ${error.message}`);
       setIsEditing(true);
     } finally {
       setIsGenerating(false);

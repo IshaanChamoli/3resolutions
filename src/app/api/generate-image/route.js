@@ -78,99 +78,58 @@ async function addWatermark(imageBuffer) {
 async function uploadImageToGCS(imageUrl, userId, userName) {
   try {
     console.log('Starting GCS upload process...');
-    console.log('GCS Credentials check:', {
-      projectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
-      clientEmail: !!process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
-      privateKeyExists: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
-      bucketName: process.env.GOOGLE_CLOUD_BUCKET_NAME
-    });
-
-    const sanitizedName = sanitizeNameForUrl(userName);
-    console.log('Sanitized name:', sanitizedName);
     
     // Download DALL-E image
     console.log('Fetching DALL-E image from URL:', imageUrl);
-    const response = await fetch(imageUrl);
+    const response = await fetch(imageUrl, {
+      timeout: 15000 // 15 second timeout
+    });
     if (!response.ok) {
       throw new Error(`Failed to fetch DALL-E image: ${response.status} ${response.statusText}`);
     }
     const buffer = await response.arrayBuffer();
-    console.log('DALL-E image downloaded, size:', buffer.byteLength);
+    
+    // Process image with optimized Sharp settings
+    const watermarkedBuffer = await sharp(Buffer.from(buffer))
+      .jpeg({ quality: 80, progressive: true }) // Reduced quality, progressive loading
+      .composite([{
+        input: Buffer.from(watermarkSvg),
+        top: (await sharp(Buffer.from(buffer)).metadata()).height - 100 - 40,
+        left: (await sharp(Buffer.from(buffer)).metadata()).width - 530,
+      }])
+      .toBuffer();
 
-    try {
-      // Add watermark
-      console.log('Starting watermark process...');
-      const watermarkedBuffer = await addWatermark(Buffer.from(buffer));
-      console.log('Watermark added successfully, new size:', watermarkedBuffer.length);
-
-      // Upload to GCS
-      const timestamp = Date.now();
-      const filename = `resolutions/${sanitizedName}-${timestamp}.jpg`;
-      console.log('Attempting upload to GCS path:', filename);
-      
-      const file = bucket.file(filename);
-      const writeStream = file.createWriteStream({
-        metadata: {
-          contentType: 'image/jpeg',
-          cacheControl: 'public, max-age=31536000',
-        }
-      });
-
-      // Upload with more detailed error handling
-      await new Promise((resolve, reject) => {
-        writeStream.on('error', (error) => {
-          console.error('GCS write stream error:', error);
-          reject(error);
-        });
-        writeStream.on('finish', () => {
-          console.log('GCS write stream finished successfully');
-          resolve();
-        });
-        writeStream.end(watermarkedBuffer);
-      });
-
-      const publicUrl = `https://storage.googleapis.com/${process.env.GOOGLE_CLOUD_BUCKET_NAME}/${filename}`;
-      console.log('Generated public URL:', publicUrl);
-      
-      // Verify the uploaded file is accessible
-      try {
-        const verifyResponse = await fetch(publicUrl);
-        if (!verifyResponse.ok) {
-          console.warn('Warning: Uploaded file verification failed:', verifyResponse.status);
-        }
-      } catch (verifyError) {
-        console.warn('Warning: Could not verify uploaded file:', verifyError);
-      }
-
-      return publicUrl;
-    } catch (watermarkError) {
-      console.error('Error in watermark/upload process:', watermarkError);
-      throw watermarkError;
-    }
-  } catch (error) {
-    console.error('Detailed GCS upload error:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      errors: error.errors
+    // Upload to GCS with optimized settings
+    const timestamp = Date.now();
+    const filename = `resolutions/${sanitizeNameForUrl(userName)}-${timestamp}.jpg`;
+    const file = bucket.file(filename);
+    
+    await file.save(watermarkedBuffer, {
+      metadata: {
+        contentType: 'image/jpeg',
+        cacheControl: 'public, max-age=31536000',
+      },
+      resumable: false // Disable resumable uploads for faster processing
     });
-    throw new Error(`GCS Upload Error: ${error.message}`);
+
+    const publicUrl = `https://storage.googleapis.com/${process.env.GOOGLE_CLOUD_BUCKET_NAME}/${filename}`;
+    return publicUrl;
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw new Error(`Upload failed: ${error.message}`);
   }
 }
 
 export async function POST(request) {
   try {
     const { prompt, userId, userName } = await request.json();
-    console.log('Starting image generation for user:', userName);
-    console.log('API Key format check:', {
-      exists: !!process.env.OPENAI_API_KEY,
-      prefix: process.env.OPENAI_API_KEY?.substring(0, 8),
-      length: process.env.OPENAI_API_KEY?.length
-    });
+    
+    // Set a timeout for the entire operation
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Operation timed out')), 50000)
+    );
 
-    // Generate with DALL-E
-    console.log('Calling DALL-E API with prompt:', prompt);
-    try {
+    const operationPromise = (async () => {
       const response = await openai.images.generate({
         model: "dall-e-3",
         prompt: prompt,
@@ -181,37 +140,20 @@ export async function POST(request) {
       });
 
       if (!response?.data?.[0]?.url) {
-        console.error('Unexpected DALL-E response structure:', response);
         throw new Error('Invalid response from DALL-E API');
       }
 
-      console.log('DALL-E image generated successfully');
-      const temporaryUrl = response.data[0].url;
-      
-      // Upload to Google Cloud Storage
-      console.log('Uploading to Google Cloud Storage...');
-      const permanentUrl = await uploadImageToGCS(temporaryUrl, userId, userName);
-      console.log('Final permanent URL:', permanentUrl);
+      return await uploadImageToGCS(response.data[0].url, userId, userName);
+    })();
 
-      return Response.json({ imageUrl: permanentUrl });
-    } catch (error) {
-      console.error('OpenAI API Error Details:', {
-        message: error.message,
-        type: error.type,
-        code: error.code,
-        param: error.param,
-        stack: error.stack,
-        response: error.response?.data
-      });
-
-      throw new Error(`DALL-E Error: ${error.message}`);
-    }
+    const permanentUrl = await Promise.race([operationPromise, timeoutPromise]);
+    return Response.json({ imageUrl: permanentUrl });
+    
   } catch (error) {
-    console.error('Full error object:', JSON.stringify(error, null, 2));
+    console.error('Operation failed:', error);
     return Response.json({ 
       error: 'Failed to generate image',
-      details: error.message,
-      stack: error.stack
-    }, { status: 500 });
+      details: error.message
+    }, { status: error.message.includes('timed out') ? 504 : 500 });
   }
 } 
