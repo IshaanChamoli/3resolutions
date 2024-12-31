@@ -385,7 +385,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
               Sign out
             </button>
           )}
-          <div className="fixed bottom-10 right-4 text-xs text-gray-400">
+          <div className="fixed bottom-3 right-4 text-xs text-gray-400">
             Made with ❤️ by{' '}
             <a 
               href="https://www.linkedin.com/in/ishaanchamoli/" 
