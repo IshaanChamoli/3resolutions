@@ -127,26 +127,28 @@ Make the representation of each resolution very clear and guessable, like a visu
 
   const handleLinkedInShare = () => {
     if (generatedImage) {
+      // Convert spaces to hyphens for cleaner URL
+      const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
+      const domain = window.location.origin.replace(/^https?:\/\//, '').replace(/^www\./, '');
+      const shareUrl = `${domain}/share/${urlName}`;
+
       const shareText = `🌟 Guess My 2025 Resolutions! 🌟
 
-The attached image (link) hints at what my top 3 resolutions are. Can you guess them? 🤔
+This attached image (link) hints at what my top 3 resolutions are! - 
+${shareUrl}
 
-Drop your guesses in the comments below!!!
+Can you guess them? 🤔 Comment below!!
 
-Want to create an AI image of your own resolutions and challenge your network? 🎯 
-Visit below and let the guessing games begin!
+Want to create your own?
+Share your AI image on Linkedin too... or don't! 
+Just submit your resolutions to get help in staying accountable ; )
 
-
-P.S. If 500+ people commit to their resolutions, the developers have promised to build more tech to help keep each of us accountable in reaching our goals! 💪
+ ✨✨ If 500+ people commit to their resolutions, the developers have promised to build more tech to help keep each of us accountable in reaching our goals! 💪 
 So go and lock in to your New Year's resolutions now! Happy New Year!
 
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
-      // Convert spaces to hyphens for cleaner URL
-      const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
-      const domain = window.location.origin;
-      const shareUrl = `${domain}/share/${urlName}`;
-      
-      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+
+      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
       
       window.open(linkedInUrl, '_blank', 'width=600,height=600');
     }
