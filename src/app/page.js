@@ -206,11 +206,11 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
   }
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen bg-white relative pt-6 sm:pt-0">
       {session && (
         <button
           onClick={() => signOut()}
-          className="fixed top-4 right-4 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          className="fixed top-6 sm:top-4 right-4 text-xs text-gray-400 hover:text-gray-600 transition-colors"
         >
           Sign out
         </button>
@@ -237,13 +237,13 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
         </a>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 min-h-screen flex flex-col">
         {/* Header Section */}
-        <div className="text-center pt-12 pb-6 mb-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
+        <div className="text-center pt-6 sm:pt-12 pb-4 sm:pb-6 mb-4 sm:mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
             3resolutions &nbsp;</h1>
-          <span className="inline-block animate-party text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
-          <div className="text-gray-600 text-sm md:text-base space-y-2 max-w-xl mx-auto text-center">
+          <span className="inline-block animate-party text-3xl sm:text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
+          <div className="text-gray-600 text-sm space-y-1.5 sm:space-y-2 max-w-xl mx-auto text-center px-2 sm:px-4">
             <p className="flex items-center justify-center gap-2 hover:text-gray-700 transition-colors">
               <span className="text-purple-600 font-bold">1.</span>
               <span>Share your top 3 resolutions for 2025</span>
@@ -275,11 +275,11 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                     {isEditing ? 'Lock in!' : (isOptedIn ? 'Locked in! : )' : 'Not locked in :(')}
                   </span>
                 </label>
-                <div className="flex items-center gap-2 w-[140px]">
-                  <div className="text-sm font-medium text-purple-600 min-w-[45px]">
+                <div className="flex items-center gap-2 w-[120px] sm:w-[140px]">
+                  <div className="text-sm font-medium text-purple-600 min-w-[40px] sm:min-w-[45px]">
                     {commitCount}/500
                   </div>
-                  <div className="flex-grow h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="flex-grow h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-500 ease-out"
                       style={{ width: `${Math.min((commitCount / 500) * 100, 100)}%` }}
@@ -315,10 +315,10 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                 {[1, 2, 3].map((num, index) => (
                   <div 
                     key={num}
-                    className="p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                    className="p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
                         {num}
                       </div>
                       <input
@@ -327,7 +327,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                         onChange={(e) => handleResolutionChange(index, e.target.value)}
                         placeholder="Enter resolution..."
                         maxLength={50}
-                        className="w-full p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        className="w-full p-1.5 sm:p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm sm:text-base"
                       />
                     </div>
                   </div>
@@ -336,7 +336,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                 <button 
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="w-full mt-16 px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="w-full mt-8 sm:mt-12 px-6 sm:px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   {isGenerating ? 'Generating an image with your goals ✨' : 'Generate AI Art 🎨'}
                 </button>
@@ -345,7 +345,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
           ) : (
             // Generated Image View - remains the same
             <div className="flex flex-col items-center">
-              <div className="aspect-square w-full max-w-[360px] rounded-xl overflow-hidden shadow-lg">
+              <div className="aspect-square w-full max-w-[300px] sm:max-w-[360px] mx-auto rounded-xl overflow-hidden shadow-lg">
                 {isGenerating ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50">
                     <div className="text-center">
@@ -370,7 +370,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                   <div className="space-y-3 w-full">
                     {generatedImage && (
                       <button 
-                        className="w-full px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-lg"
+                        className="w-full px-6 sm:px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base"
                         onClick={handleLinkedInShare}
                       >
                         Share on LinkedIn &nbsp;🚀
