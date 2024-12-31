@@ -126,14 +126,14 @@ The attached image (link) hints at what my top 3 resolutions are. Can you guess 
 Drop your guesses in the comments below!!!
 
 Want to create an AI image of your own resolutions and challenge your network? 🎯 
-Visit https://3resolutions.vercel.app and let the guessing games begin!
+Visit below and let the guessing games begin!
 
 
 P.S. If 500+ people commit to their resolutions, the developers have promised to build more tech to help keep each of us accountable in reaching our goals! 💪
 So go and lock in to your New Year's resolutions now! Happy New Year!
 
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
-      const imageUrl = generatedImage; // This is already the Firebase Storage URL
+      const imageUrl = `https://3resolutions.com/share?image=${encodeURIComponent(generatedImage)}&creator=${encodeURIComponent(session.user.name.split(' ')[0])}`; // Share URL through our website with creator's first name
       
       const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(imageUrl)}`;
       
