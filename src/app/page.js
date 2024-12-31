@@ -389,7 +389,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                           Go to LinkedIn &nbsp;🚀
                         </button>
                         <p className="text-xs text-gray-400 text-center mt-2">
-                          {`https://3resolutions.com/share?name=${encodeURIComponent(session.user.name)}`}
+                          {`https://3resolutions.com/share?name=${formatNameForUrl(session.user.name)}`}
                         </p>
                       </>
                     )}
