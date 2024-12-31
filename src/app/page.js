@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, increment, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, increment, collection, query, where, getDocs, onSnapshot, serverTimestamp } from 'firebase/firestore';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -69,17 +69,19 @@ export default function Home() {
         alert('Unable to generate more images. Max limit reached for your account!');
         return;
       }
-    } catch (error) {
-      console.error('Error checking image count:', error);
-      alert('Something went wrong. Please try again.');
-      return;
-    }
-    
-    setIsEditing(false);
-    setIsGenerating(true);
-    try {
+
+      // Save the resolutions array and update lockedIn status
+      await setDoc(userRef, {
+        resolutions: resolutions,
+        lastUpdated: serverTimestamp(),
+        lockedIn: isOptedIn  // This will update lockedIn based on checkbox state
+      }, { merge: true });
+      
+      setIsEditing(false);
+      setIsGenerating(true);
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 55000);
 
       const response = await fetch('/api/generate-image', {
         method: 'POST',
@@ -102,16 +104,15 @@ export default function Home() {
       const data = await response.json();
       setGeneratedImage(data.imageUrl);
 
-      // Save the permanent Firebase Storage URL to Firestore
-      if (session?.user?.email) {
-        const userRef = doc(db, "users", session.user.email);
-        await setDoc(userRef, {
-          lastGeneratedImage: data.imageUrl,
-        }, { merge: true });
-        console.log('Permanent image URL saved to Firestore');
-      }
+      // Update the image URL and increment count
+      await setDoc(userRef, {
+        lastGeneratedImage: data.imageUrl,
+        imageCount: increment(1)
+      }, { merge: true });
+      console.log('Image URL saved and count incremented');
+
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error('Error:', error);
       alert(error.message === 'The user aborted a request.' 
         ? 'The request took too long. Please try again.'
         : `Failed to generate image: ${error.message}`);
@@ -130,7 +131,7 @@ The attached image (link) hints at what my top 3 resolutions are. Can you guess 
 Drop your guesses in the comments below!!!
 
 Want to create an AI image of your own resolutions and challenge your network? 🎯 
-Visit https://3resolutions.com and let the guessing games begin!
+Visit https://3resolutions.vercel.app and let the guessing games begin!
 
 
 P.S. If 500+ people commit to their resolutions, the developers have promised to build more tech to help keep each of us accountable in reaching our goals! 💪
@@ -153,10 +154,9 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const userData = userSnap.data();
-            if (userData.resolutions) {
-              const loadedResolutions = userData.resolutions.split(',');
-              setResolutions(loadedResolutions);
-              console.log('Loaded resolutions from Firestore:', loadedResolutions);
+            if (userData.resolutions && Array.isArray(userData.resolutions)) {
+              setResolutions(userData.resolutions);
+              console.log('Loaded resolutions from Firestore:', userData.resolutions);
             }
           }
         } catch (error) {
