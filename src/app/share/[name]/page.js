@@ -89,7 +89,7 @@ function SharePageContent() {
         {/* CTA Button */}
         <div className="text-center space-y-4">
           <p className="text-gray-600">
-            Want to create your own AI-generated resolution image?
+            Want to be held accountable for YOUR 2025 goals?
           </p>
           <div className="relative inline-block">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur opacity-30 animate-pulse"></div>
@@ -98,7 +98,7 @@ function SharePageContent() {
               className="relative px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold 
               hover:scale-105 transition-all duration-300 ease-out"
             >
-              Create Your Own ✨
+              Set your Resolutions ✨
             </button>
           </div>
         </div>

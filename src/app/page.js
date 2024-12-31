@@ -377,12 +377,17 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                   </p>
                   <div className="space-y-3 w-full">
                     {generatedImage && (
-                      <button 
-                        className="w-full px-6 sm:px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base"
-                        onClick={handleLinkedInShare}
-                      >
-                        Share on LinkedIn &nbsp;🚀
-                      </button>
+                      <>
+                        <button 
+                          className="w-full px-6 sm:px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base"
+                          onClick={handleLinkedInShare}
+                        >
+                          Go to LinkedIn &nbsp;🚀
+                        </button>
+                        <p className="text-xs text-gray-400 text-center mt-2">
+                          {`${window.location.origin}/share/${session.user.name.replace(/\s+/g, '-').toLowerCase()}`}
+                        </p>
+                      </>
                     )}
                   </div>
                 </>
