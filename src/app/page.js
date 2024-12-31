@@ -167,21 +167,23 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
       if (isMobile) {
-        // Mobile LinkedIn app deep link
-        const encodedText = encodeURIComponent(shareText);
+        // Use a much shorter text for mobile
+        const mobileShareText = "testing...";
+        const encodedText = encodeURIComponent(mobileShareText);
         const linkedInAppUrl = `linkedin://shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&text=${encodedText}&source=3resolutions`;
         
         // Fallback URL for if app isn't installed
         const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodedText}`;
         
-        // Try to open LinkedIn app in new tab
-        window.open(linkedInAppUrl, '_blank');
+        // Try to open LinkedIn app
+        window.location.href = linkedInAppUrl;
         
-        // Set a timeout to open mobile web version in new tab if app doesn't open
+        // Set a timeout to redirect to mobile web version if app doesn't open
         setTimeout(() => {
-          window.open(linkedInMobileUrl, '_blank');
+          window.location.href = linkedInMobileUrl;
         }, 1000);
       } else {
+        // Desktop version remains exactly the same
         const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
         window.open(linkedInUrl, '_blank', 'width=600,height=600');
       }
