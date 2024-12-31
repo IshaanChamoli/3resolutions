@@ -70,8 +70,7 @@ Make the representation of each resolution very clear and guessable, like a visu
       }
 
       // Create the share URL using 3resolutions.com
-      const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
-      const shareUrl = `https://3resolutions.com/share/${urlName}`;
+      const shareUrl = `https://3resolutions.com/share?name=${encodeURIComponent(session.user.name)}`;
 
       // Save the resolutions array, update lockedIn status, and include the shareUrl
       await setDoc(userRef, {
@@ -131,10 +130,7 @@ Make the representation of each resolution very clear and guessable, like a visu
 
   const handleLinkedInShare = () => {
     if (generatedImage) {
-      // Convert spaces to hyphens for cleaner URL
-      const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
-      // Always use 3resolutions.com domain for sharing
-      const shareUrl = `https://3resolutions.com/share/${urlName}`;
+      const shareUrl = `https://3resolutions.com/share?name=${encodeURIComponent(session.user.name)}`;
 
       const shareText = `🌟 Guess My 2025 Resolutions! 🌟
 
@@ -147,13 +143,12 @@ Want to create your own?
 Share your AI image on Linkedin too... or don't! 
 Just submit your resolutions to get help in staying accountable ; )
 
- ✨✨ If 500+ people commit to their resolutions, the developers have promised to build more tech to help keep each of us accountable in reaching our goals! 💪 
+✨✨ If 500+ people commit to their resolutions, the developers have promised to build more tech to help keep each of us accountable in reaching our goals! 💪 
 So go and lock in to your New Year's resolutions now! Happy New Year!
 
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
 
       const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
-      
       window.open(linkedInUrl, '_blank', 'width=600,height=600');
     }
   };
@@ -389,7 +384,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                           Go to LinkedIn &nbsp;🚀
                         </button>
                         <p className="text-xs text-gray-400 text-center mt-2">
-                          {`https://3resolutions.com/share/${session.user.name.replace(/\s+/g, '-').toLowerCase()}`}
+                          {`https://3resolutions.com/share?name=${encodeURIComponent(session.user.name)}`}
                         </p>
                       </>
                     )}
