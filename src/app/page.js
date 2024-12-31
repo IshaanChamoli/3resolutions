@@ -133,8 +133,8 @@ Want to create an AI image of your own resolutions and challenge your network? �
 Visit https://3resolutions.com and let the guessing games begin!
 
 
-P.S. If 500+ people commit to their resolutions, the developers have committed to build additional tech to keep each of us personally accountable to the resolutions we list and share! 💪
-So go and commit to your New Year's resolutions now!
+P.S. If 500+ people commit to their resolutions, the developers have promised to build more tech to help keep each of us accountable in reaching our goals! 💪
+So go and lock in to your New Year's resolutions now! Happy New Year!
 
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
       const imageUrl = generatedImage; // This is already the Firebase Storage URL
