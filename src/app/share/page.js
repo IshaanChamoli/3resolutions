@@ -1,8 +1,10 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function SharePage() {
+// Separate the main content into its own component
+function SharePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const imageUrl = searchParams.get('image');
@@ -53,5 +55,26 @@ export default function SharePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading component
+function LoadingState() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-pulse text-2xl mb-3">✨</div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main page component with Suspense
+export default function SharePage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <SharePageContent />
+    </Suspense>
   );
 } 
