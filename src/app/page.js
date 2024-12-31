@@ -153,8 +153,29 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
 
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
 
-      const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
-      window.open(linkedInUrl, '_blank', 'width=600,height=600');
+      // Check if user is on mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        // Mobile LinkedIn app deep link
+        const encodedText = encodeURIComponent(shareText);
+        const linkedInAppUrl = `linkedin://shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&text=${encodedText}`;
+        
+        // Fallback URL for if app isn't installed
+        const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&text=${encodedText}`;
+        
+        // Try to open LinkedIn app first, fall back to mobile web if app isn't installed
+        window.location.href = linkedInAppUrl;
+        
+        // Set a timeout to redirect to mobile web version if app doesn't open
+        setTimeout(() => {
+          window.location.href = linkedInMobileUrl;
+        }, 1000);
+      } else {
+        // Desktop behavior remains unchanged
+        const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
+        window.open(linkedInUrl, '_blank', 'width=600,height=600');
+      }
     }
   };
 
