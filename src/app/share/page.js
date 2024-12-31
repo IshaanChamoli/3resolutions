@@ -82,7 +82,7 @@ export default async function SharePage({ searchParams }) {
     );
   }
 
-  const shareUrl = `https://3resolutions.com/share?name=${encodeURIComponent(name)}`;
+  const shareUrl = `https://3resolutions.com/share?name=${name.toLowerCase()}`;
 
   return (
     <>
