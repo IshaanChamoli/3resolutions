@@ -12,7 +12,6 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(true);
   const [isOptedIn, setIsOptedIn] = useState(true);
   const [commitCount, setCommitCount] = useState(0);
-  const [isCommitCountLoading, setIsCommitCountLoading] = useState(true);
 
   useEffect(() => {
     if (session) {
@@ -144,7 +143,8 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
       // Convert spaces to hyphens for cleaner URL
       const urlName = session.user.name.replace(/\s+/g, '-').toLowerCase();
-      const shareUrl = `https://3resolutions.com/share/${urlName}`;
+      const domain = window.location.origin;
+      const shareUrl = `${domain}/share/${urlName}`;
       
       const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
       
@@ -175,7 +175,6 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
 
   useEffect(() => {
     const fetchCommitCount = async () => {
-      setIsCommitCountLoading(true);
       try {
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("lockedIn", "==", true));
@@ -183,8 +182,6 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
         setCommitCount(querySnapshot.size);
       } catch (error) {
         console.error('Error fetching commit count:', error);
-      } finally {
-        setIsCommitCountLoading(false);
       }
     };
 
@@ -194,18 +191,16 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
       query(collection(db, "users"), where("lockedIn", "==", true)),
       (snapshot) => {
         setCommitCount(snapshot.size);
-        setIsCommitCountLoading(false);
       },
       (error) => {
         console.error('Error in commit count listener:', error);
-        setIsCommitCountLoading(false);
       }
     );
 
     return () => unsubscribe();
   }, []);
 
-  if (status === "loading" || isCommitCountLoading) {
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -288,7 +283,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                 </label>
                 <div className="flex items-center gap-2 w-[120px] sm:w-[140px]">
                   <div className="text-sm font-medium text-purple-600 min-w-[40px] sm:min-w-[45px]">
-                    {commitCount}/500
+                    {commitCount === 0 ? '-' : commitCount}/500
                   </div>
                   <div className="flex-grow h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
