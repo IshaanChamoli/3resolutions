@@ -14,6 +14,7 @@ export default function Home() {
   const [isOptedIn, setIsOptedIn] = useState(true);
   const [commitCount, setCommitCount] = useState(0);
   const [shareText, setShareText] = useState('');
+  const [hasCopied, setHasCopied] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -377,37 +378,85 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                   <div className="w-full">
                     {generatedImage && (
                       <>
-                        <button 
-                          className="w-full px-6 sm:px-8 py-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base"
-                          onClick={handleLinkedInShare}
-                        >
-                          Go to LinkedIn &nbsp;🚀
-                        </button>
-                        
-                        <div className="flex items-center justify-center gap-2 my-1.5">
-                          <div className="h-[1px] flex-grow bg-gray-200"></div>
-                          <span className="text-xs text-gray-400">or</span>
-                          <div className="h-[1px] flex-grow bg-gray-200"></div>
-                        </div>
+                        {/* Check if mobile and render different order */}
+                        {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? (
+                          <>
+                            <button 
+                              className={`w-full px-6 sm:px-8 py-2.5 rounded-full font-semibold transition-all text-base ${
+                                hasCopied 
+                                  ? "text-gray-400 border border-gray-200" 
+                                  : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90"
+                              }`}
+                              onClick={(e) => {
+                                navigator.clipboard.writeText(shareText).then(() => {
+                                  const button = e.target;
+                                  const buttonSpan = button.querySelector('span') || button;
+                                  const originalText = '1. Copy content 📋';
+                                  buttonSpan.textContent = 'Copied! ✨';
+                                  setHasCopied(true);
+                                  setTimeout(() => {
+                                    buttonSpan.textContent = originalText;
+                                  }, 2000);
+                                }).catch(err => {
+                                  console.error('Failed to copy:', err);
+                                });
+                              }}
+                            >
+                              <span>1. Copy content &nbsp;📋</span>
+                            </button>
+                            
+                            <div className="flex items-center justify-center gap-2 my-2">
+                              <div className="h-[1px] flex-grow bg-gray-200"></div>
+                              <span className="text-xs text-gray-400">then</span>
+                              <div className="h-[1px] flex-grow bg-gray-200"></div>
+                            </div>
 
-                        <button 
-                          className="mx-auto px-12 py-1.5 rounded-full text-gray-500 hover:text-gray-700 text-sm transition-colors border border-gray-100 hover:border-gray-200 flex items-center justify-center"
-                          onClick={(e) => {
-                            navigator.clipboard.writeText(shareText).then(() => {
-                              const button = e.target;
-                              const buttonSpan = button.querySelector('span') || button;
-                              const originalText = 'Copy content 📋';
-                              buttonSpan.textContent = 'Copied! ✨';
-                              setTimeout(() => {
-                                buttonSpan.textContent = originalText;
-                              }, 2000);
-                            }).catch(err => {
-                              console.error('Failed to copy:', err);
-                            });
-                          }}
-                        >
-                          <span>Copy content &nbsp;📋</span>
-                        </button>
+                            <button 
+                              className={`w-full px-6 sm:px-8 py-2.5 rounded-full font-semibold transition-all text-base ${
+                                hasCopied 
+                                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 animate-pulse" 
+                                  : "border-2 border-blue-600 text-blue-600"
+                              }`}
+                              onClick={handleLinkedInShare}
+                            >
+                              2. Go to LinkedIn &nbsp;🚀
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button 
+                              className="w-full px-6 sm:px-8 py-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base"
+                              onClick={handleLinkedInShare}
+                            >
+                              Go to LinkedIn &nbsp;🚀
+                            </button>
+                            
+                            <div className="flex items-center justify-center gap-2 my-1.5">
+                              <div className="h-[1px] flex-grow bg-gray-200"></div>
+                              <span className="text-xs text-gray-400">or</span>
+                              <div className="h-[1px] flex-grow bg-gray-200"></div>
+                            </div>
+
+                            <button 
+                              className="mx-auto px-8 py-1.5 rounded-full text-gray-500 hover:text-gray-700 text-sm transition-colors border border-gray-100 hover:border-gray-200 flex items-center justify-center"
+                              onClick={(e) => {
+                                navigator.clipboard.writeText(shareText).then(() => {
+                                  const button = e.target;
+                                  const buttonSpan = button.querySelector('span') || button;
+                                  const originalText = 'Copy content 📋';
+                                  buttonSpan.textContent = 'Copied! ✨';
+                                  setTimeout(() => {
+                                    buttonSpan.textContent = originalText;
+                                  }, 2000);
+                                }).catch(err => {
+                                  console.error('Failed to copy:', err);
+                                });
+                              }}
+                            >
+                              <span>Copy content &nbsp;📋</span>
+                            </button>
+                          </>
+                        )}
                         <p className="text-[10px] text-gray-400 text-center mt-0.5">
                           {`https://3resolutions.com/share?name=${formatNameForUrl(session.user.name)}`}
                         </p>
