@@ -75,6 +75,44 @@ async function addWatermark(imageBuffer) {
   }
 }
 
+// Add this SVG definition before the uploadImageToGCS function
+const watermarkSvg = `
+  <svg width="900" height="100">
+    <defs>
+      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#9333EA;stop-opacity:1" />
+      </linearGradient>
+      <filter id="shadow">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+      </filter>
+    </defs>
+    <style>
+      .background {
+        fill: rgba(255, 255, 255, 0.85);
+        filter: url(#shadow);
+        rx: 16;
+        ry: 16;
+      }
+      .text { 
+        fill: url(#gradient);
+        font-size: 52px;
+        font-weight: 700; 
+        font-family: Arial, Helvetica, sans-serif;
+        letter-spacing: 1px;
+        word-spacing: 2px;
+        text-decoration: underline;
+        text-decoration-thickness: 3px;
+        text-underline-offset: 8px;
+      }
+    </style>
+    <rect class="background" x="10" y="10" width="880" height="80" />
+    <text x="40" y="50%" text-anchor="start" class="text" dy=".35em">
+      3resolutions.com      
+    </text>
+  </svg>
+`;
+
 async function uploadImageToGCS(imageUrl, userId, userName) {
   try {
     console.log('Starting GCS upload process...');
