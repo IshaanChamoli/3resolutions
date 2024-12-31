@@ -160,29 +160,28 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
 
   const handleLinkedInShare = () => {
     if (generatedImage) {
+      const formattedName = formatNameForUrl(session.user.name);
+      const shareUrl = `https://3resolutions.com/share?name=${formattedName}`;
+
       // Check if user is on mobile
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
       if (isMobile) {
         // Mobile LinkedIn app deep link
         const encodedText = encodeURIComponent(shareText);
-        const linkedInAppUrl = `linkedin://sharing/share-offsite/?text=${encodedText}`;
+        const linkedInAppUrl = `linkedin://shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&text=${encodedText}&source=3resolutions`;
         
-        // Fallback URL for mobile web
-        const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?text=${encodedText}`;
+        // Fallback URL for if app isn't installed
+        const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodedText}`;
         
-        // Try to open LinkedIn app
-        window.location.href = linkedInAppUrl;
+        // Try to open LinkedIn app in new tab
+        window.open(linkedInAppUrl, '_blank');
         
-        // Fallback to mobile web after a short delay if app doesn't open
+        // Set a timeout to open mobile web version in new tab if app doesn't open
         setTimeout(() => {
-          const currentUrl = window.location.href;
-          if (!currentUrl.includes('linkedin')) {
-            window.location.href = linkedInMobileUrl;
-          }
+          window.open(linkedInMobileUrl, '_blank');
         }, 1000);
       } else {
-        // Desktop behavior remains the same
         const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
         window.open(linkedInUrl, '_blank', 'width=600,height=600');
       }
