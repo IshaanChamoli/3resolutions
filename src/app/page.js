@@ -167,13 +167,9 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
       if (isMobile) {
-        // Use a much shorter text for mobile
-        const mobileShareText = "testing...";
-        const encodedText = encodeURIComponent(mobileShareText);
-        const linkedInAppUrl = `linkedin://shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&text=${encodedText}`;
-        
-        // Try to open LinkedIn app
-        window.location.href = linkedInAppUrl;
+        // Use same URL as desktop but without popup window
+        const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
+        window.location.href = linkedInUrl;
       } else {
         // Desktop version remains exactly the same
         const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
