@@ -159,10 +159,10 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
       if (isMobile) {
         // Mobile LinkedIn app deep link
         const encodedText = encodeURIComponent(shareText);
-        const linkedInAppUrl = `linkedin://shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&text=${encodedText}`;
+        const linkedInAppUrl = `linkedin://sharing/share-offsite/?mini=true&text=${encodedText}`;
         
         // Fallback URL for if app isn't installed
-        const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&text=${encodedText}`;
+        const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodedText}`;
         
         // Try to open LinkedIn app first, fall back to mobile web if app isn't installed
         window.location.href = linkedInAppUrl;
