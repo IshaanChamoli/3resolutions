@@ -44,25 +44,7 @@ export default function Home() {
   };
 
   const generatePrompt = (resolutions) => {
-    return `Create a single unified 2D illustration that cleverly combines these three New Year's resolutions into one cohesive image: "${resolutions[0]}", "${resolutions[1]}", and "${resolutions[2]}".
-
-    Art Style:
-    - Clean, modern 2D illustration
-    - Warm, optimistic colors
-    - Simple shapes and clear symbols
-    - Minimal but meaningful details
-    - Think modern minimalist illustration
-
-    Key Requirements:
-    - Blend all three resolutions into ONE seamless image (not separate sections)
-    - Use objects and symbols that naturally interact with each other
-    - Keep it simple and easy to understand
-    - Add subtle decorative elements that tie everything together
-    - Create a natural flow between all elements
-
-    Mood: Optimistic and clean, making viewers enjoy discovering how the resolutions connect in unexpected ways.
-
-    The final image should look like a single, cohesive illustration where all elements work together to tell one story.`;
+    return `Create a single unified illustration that represents these three resolutions: "${resolutions[0]}", "${resolutions[1]}", "${resolutions[2]}"`;
   };
 
   const handleGenerate = async () => {
@@ -264,56 +246,54 @@ So go and commit to your New Year's resolutions now!
 
       <div className="max-w-2xl mx-auto px-4 min-h-screen flex flex-col">
         {/* Header Section */}
-        <div className="text-center pt-12 mb-6">
+        <div className="text-center pt-12 pb-6 mb-6">
           <h1 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
             3resolutions &nbsp;</h1>
           <span className="inline-block animate-party text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
-          <div className="text-gray-600 text-sm md:text-base space-y-2 max-w-sm mx-auto text-left pl-8 pr-4">
-            <p className="flex items-center gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
-              <span className="text-purple-600 font-bold min-w-[1.25rem]">1.</span>
-              Share your top 3 resolutions for 2025
+          <div className="text-gray-600 text-sm md:text-base space-y-2 max-w-xl mx-auto text-center">
+            <p className="flex items-center justify-center gap-2 hover:text-gray-700 transition-colors">
+              <span className="text-purple-600 font-bold">1.</span>
+              <span>Share your top 3 resolutions for 2025</span>
             </p>
-            <p className="flex items-center gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
-              <span className="text-purple-600 font-bold min-w-[1.25rem]">2.</span>
-              Get a unique AI image that hints at them
+            <p className="flex items-center justify-center gap-2 hover:text-gray-700 transition-colors">
+              <span className="text-purple-600 font-bold">2.</span>
+              <span>Get a unique AI image that hints at them</span>
             </p>
-            <p className="flex items-center gap-2 whitespace-nowrap hover:text-gray-700 transition-colors">
-              <span className="text-purple-600 font-bold min-w-[1.25rem]">3.</span>
-              Challenge your LinkedIn network to guess
+            <p className="flex items-center justify-center gap-2 hover:text-gray-700 transition-colors">
+              <span className="text-purple-600 font-bold">3.</span>
+              <span>Challenge your LinkedIn network to guess</span>
             </p>
-            <div className="flex items-start gap-2 hover:text-gray-700 transition-colors">
-              <span className="text-purple-600 font-bold min-w-[1.25rem]">4.</span>
-              <span className="flex flex-col gap-1">
-                <span className="text-sm md:text-base pb-1">
-                  If 500+ people commit, we'll add tech to keep you personally accountable!
-                </span>
-                <div className="flex items-center justify-between pt-1">
-                  <label className={`flex items-center gap-2 text-purple-600 whitespace-nowrap cursor-${isEditing ? 'pointer' : 'not-allowed'} ${!isEditing && 'opacity-75'}`}>
-                    <input
-                      type="checkbox"
-                      checked={isOptedIn}
-                      onChange={(e) => setIsOptedIn(e.target.checked)}
-                      disabled={!isEditing}
-                      className={`h-4 w-4 rounded border-purple-400 text-purple-600 focus:ring-purple-500 
-                        ${!isEditing && 'cursor-not-allowed opacity-75'}`}
+            <div className="flex flex-col items-center gap-2 hover:text-gray-700 transition-colors">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-purple-600 font-bold">4.</span>
+                <span>If 500+ people lock in, we'll add tech to help you stay accountable!</span>
+              </div>
+              <div className="flex items-center justify-center gap-4 pt-1">
+                <label className={`flex items-center gap-2 text-purple-600 whitespace-nowrap cursor-${isEditing ? 'pointer' : 'not-allowed'} ${!isEditing && 'opacity-75'}`}>
+                  <input
+                    type="checkbox"
+                    checked={isOptedIn}
+                    onChange={(e) => setIsOptedIn(e.target.checked)}
+                    disabled={!isEditing}
+                    className={`h-4 w-4 rounded border-purple-400 text-purple-600 focus:ring-purple-500 
+                      ${!isEditing && 'cursor-not-allowed opacity-75'}`}
+                  />
+                  <span className={`text-sm font-medium ${!isEditing && 'opacity-75'}`}>
+                    {isEditing ? 'Lock in!' : (isOptedIn ? 'Locked in! : )' : 'Not locked in :(')}
+                  </span>
+                </label>
+                <div className="flex items-center gap-2 w-[140px]">
+                  <div className="text-sm font-medium text-purple-600 min-w-[45px]">
+                    {commitCount}/500
+                  </div>
+                  <div className="flex-grow h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-500 ease-out"
+                      style={{ width: `${Math.min((commitCount / 500) * 100, 100)}%` }}
                     />
-                    <span className={`text-sm font-medium ${!isEditing && 'opacity-75'}`}>
-                      {isEditing ? 'Lock in!' : (isOptedIn ? 'Locked in! : )' : 'Not locked in :(')}
-                    </span>
-                  </label>
-                  <div className="flex items-center gap-2 w-[140px]">
-                    <div className="text-sm font-medium text-purple-600 min-w-[45px]">
-                      {commitCount}/500
-                    </div>
-                    <div className="flex-grow h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-500 ease-out"
-                        style={{ width: `${Math.min((commitCount / 500) * 100, 100)}%` }}
-                      />
-                    </div>
                   </div>
                 </div>
-              </span>
+              </div>
             </div>
           </div>
         </div>
