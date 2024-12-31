@@ -44,7 +44,12 @@ export default function Home() {
   };
 
   const generatePrompt = (resolutions) => {
-    return `Create a single unified illustration that represents these three resolutions: "${resolutions[0]}", "${resolutions[1]}", "${resolutions[2]}"`;
+    // Sanitize the resolutions to remove any problematic characters
+    const sanitizedResolutions = resolutions.map(r => 
+      r.replace(/[^\w\s,.!?-]/g, '')
+    );
+    
+    return `Create a single unified illustration that represents these three resolutions: "${sanitizedResolutions[0]}", "${sanitizedResolutions[1]}", and "${sanitizedResolutions[2]}". Make it inspirational and positive.`;
   };
 
   const handleGenerate = async () => {
@@ -104,6 +109,10 @@ export default function Home() {
         throw new Error(data.details || data.error || 'Failed to generate image');
       }
 
+      if (!data.imageUrl) {
+        throw new Error('No image URL returned from the API');
+      }
+
       setGeneratedImage(data.imageUrl);
 
       // Save the permanent Firebase Storage URL to Firestore
@@ -115,7 +124,7 @@ export default function Home() {
         console.log('Permanent image URL saved to Firestore');
       }
     } catch (error) {
-      console.error('Detailed error in handleGenerate:', error);
+      console.error('Error generating image:', error);
       alert(`Failed to generate image: ${error.message}`);
       setIsEditing(true);
     } finally {

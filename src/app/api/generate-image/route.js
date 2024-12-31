@@ -44,47 +44,17 @@ async function deleteUserPreviousImages(userId, userName) {
 
 async function addWatermark(imageBuffer) {
   try {
-    const watermarkSvg = `
-      <svg width="900" height="100">
-        <defs>
-          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#9333EA;stop-opacity:1" />
-          </linearGradient>
-          <filter id="shadow">
-            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
-          </filter>
-        </defs>
-        <style>
-          .background {
-            fill: rgba(255, 255, 255, 0.85);
-            filter: url(#shadow);
-            rx: 16;
-            ry: 16;
-          }
-          .text { 
-            fill: url(#gradient);
-            font-size: 52px;
-            font-weight: 700; 
-            font-family: Arial, Helvetica, sans-serif;
-            letter-spacing: 1px;
-            word-spacing: 2px;
-            text-decoration: underline;
-            text-decoration-thickness: 3px;
-            text-underline-offset: 8px;
-          }
-        </style>
-        <rect class="background" x="10" y="10" width="880" height="80" />
-        <text x="40" y="50%" text-anchor="start" class="text" dy=".35em">
-          3resolutions.com      
-        </text>
-      </svg>
-    `;
+    console.log('Starting watermark process with image size:', imageBuffer.length);
+    
+    // Get image dimensions first
+    const metadata = await sharp(imageBuffer).metadata();
+    console.log('Image metadata:', {
+      width: metadata.width,
+      height: metadata.height,
+      format: metadata.format
+    });
 
-    const image = sharp(imageBuffer);
-    const metadata = await image.metadata();
-
-    const watermarkedImage = await image
+    const watermarkedImage = await sharp(imageBuffer)
       .composite([{
         input: Buffer.from(watermarkSvg),
         top: metadata.height - 100 - 40,
@@ -93,57 +63,98 @@ async function addWatermark(imageBuffer) {
       .jpeg({ quality: 100 })
       .toBuffer();
 
+    console.log('Watermark added successfully, new size:', watermarkedImage.length);
     return watermarkedImage;
   } catch (error) {
-    console.error('Error adding watermark:', error);
-    throw error;
+    console.error('Detailed watermark error:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
+    throw new Error(`Watermark Error: ${error.message}`);
   }
 }
 
 async function uploadImageToGCS(imageUrl, userId, userName) {
   try {
+    console.log('Starting GCS upload process...');
+    console.log('GCS Credentials check:', {
+      projectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+      clientEmail: !!process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
+      privateKeyExists: !!process.env.GOOGLE_CLOUD_PRIVATE_KEY,
+      bucketName: process.env.GOOGLE_CLOUD_BUCKET_NAME
+    });
+
     const sanitizedName = sanitizeNameForUrl(userName);
-    await deleteUserPreviousImages(userId, userName);
-
-    console.log('Downloading DALL-E image...');
+    console.log('Sanitized name:', sanitizedName);
+    
+    // Download DALL-E image
+    console.log('Fetching DALL-E image from URL:', imageUrl);
     const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch DALL-E image: ${response.status} ${response.statusText}`);
+    }
     const buffer = await response.arrayBuffer();
+    console.log('DALL-E image downloaded, size:', buffer.byteLength);
 
-    // Add watermark before uploading
-    console.log('Adding watermark...');
-    const watermarkedBuffer = await addWatermark(Buffer.from(buffer));
-    console.log('Watermark added successfully');
+    try {
+      // Add watermark
+      console.log('Starting watermark process...');
+      const watermarkedBuffer = await addWatermark(Buffer.from(buffer));
+      console.log('Watermark added successfully, new size:', watermarkedBuffer.length);
 
-    // Create filename without user-specific folder
-    const timestamp = Date.now();
-    const filename = `resolutions/${sanitizedName}-${timestamp}.jpg`;
-    console.log('Uploading to path:', filename);
-    
-    // Create write stream with metadata
-    const file = bucket.file(filename);
-    const writeStream = file.createWriteStream({
-      metadata: {
-        contentType: 'image/jpeg',
-        cacheControl: 'public, max-age=31536000',
+      // Upload to GCS
+      const timestamp = Date.now();
+      const filename = `resolutions/${sanitizedName}-${timestamp}.jpg`;
+      console.log('Attempting upload to GCS path:', filename);
+      
+      const file = bucket.file(filename);
+      const writeStream = file.createWriteStream({
+        metadata: {
+          contentType: 'image/jpeg',
+          cacheControl: 'public, max-age=31536000',
+        }
+      });
+
+      // Upload with more detailed error handling
+      await new Promise((resolve, reject) => {
+        writeStream.on('error', (error) => {
+          console.error('GCS write stream error:', error);
+          reject(error);
+        });
+        writeStream.on('finish', () => {
+          console.log('GCS write stream finished successfully');
+          resolve();
+        });
+        writeStream.end(watermarkedBuffer);
+      });
+
+      const publicUrl = `https://storage.googleapis.com/${process.env.GOOGLE_CLOUD_BUCKET_NAME}/${filename}`;
+      console.log('Generated public URL:', publicUrl);
+      
+      // Verify the uploaded file is accessible
+      try {
+        const verifyResponse = await fetch(publicUrl);
+        if (!verifyResponse.ok) {
+          console.warn('Warning: Uploaded file verification failed:', verifyResponse.status);
+        }
+      } catch (verifyError) {
+        console.warn('Warning: Could not verify uploaded file:', verifyError);
       }
-    });
 
-    // Upload watermarked file
-    await new Promise((resolve, reject) => {
-      writeStream.end(watermarkedBuffer);
-      writeStream.on('finish', resolve);
-      writeStream.on('error', reject);
-    });
-
-    console.log('File uploaded successfully');
-    
-    const publicUrl = `https://storage.googleapis.com/${process.env.GOOGLE_CLOUD_BUCKET_NAME}/${filename}`;
-    console.log('Generated public URL:', publicUrl);
-    
-    return publicUrl;
+      return publicUrl;
+    } catch (watermarkError) {
+      console.error('Error in watermark/upload process:', watermarkError);
+      throw watermarkError;
+    }
   } catch (error) {
-    console.error('Error uploading to Google Cloud Storage:', error);
-    throw error;
+    console.error('Detailed GCS upload error:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      errors: error.errors
+    });
+    throw new Error(`GCS Upload Error: ${error.message}`);
   }
 }
 
@@ -151,28 +162,52 @@ export async function POST(request) {
   try {
     const { prompt, userId, userName } = await request.json();
     console.log('Starting image generation for user:', userName);
-
-    // Generate with DALL-E
-    console.log('Calling DALL-E API...');
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
+    console.log('API Key format check:', {
+      exists: !!process.env.OPENAI_API_KEY,
+      prefix: process.env.OPENAI_API_KEY?.substring(0, 8),
+      length: process.env.OPENAI_API_KEY?.length
     });
 
-    console.log('DALL-E image generated successfully');
-    const temporaryUrl = response.data[0].url;
-    
-    // Upload to Google Cloud Storage
-    console.log('Uploading to Google Cloud Storage...');
-    const permanentUrl = await uploadImageToGCS(temporaryUrl, userId, userName);
-    console.log('Final permanent URL:', permanentUrl);
+    // Generate with DALL-E
+    console.log('Calling DALL-E API with prompt:', prompt);
+    try {
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+        style: "natural",
+      });
 
-    return Response.json({ imageUrl: permanentUrl });
+      if (!response?.data?.[0]?.url) {
+        console.error('Unexpected DALL-E response structure:', response);
+        throw new Error('Invalid response from DALL-E API');
+      }
+
+      console.log('DALL-E image generated successfully');
+      const temporaryUrl = response.data[0].url;
+      
+      // Upload to Google Cloud Storage
+      console.log('Uploading to Google Cloud Storage...');
+      const permanentUrl = await uploadImageToGCS(temporaryUrl, userId, userName);
+      console.log('Final permanent URL:', permanentUrl);
+
+      return Response.json({ imageUrl: permanentUrl });
+    } catch (error) {
+      console.error('OpenAI API Error Details:', {
+        message: error.message,
+        type: error.type,
+        code: error.code,
+        param: error.param,
+        stack: error.stack,
+        response: error.response?.data
+      });
+
+      throw new Error(`DALL-E Error: ${error.message}`);
+    }
   } catch (error) {
-    console.error('Detailed error:', error);
+    console.error('Full error object:', JSON.stringify(error, null, 2));
     return Response.json({ 
       error: 'Failed to generate image',
       details: error.message,
