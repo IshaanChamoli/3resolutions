@@ -44,7 +44,13 @@ export default function Home() {
   };
 
   const generatePrompt = (resolutions) => {
-    return `Generate one image that represents these three New Year's resolutions: ${resolutions.join(', ')}.`;
+    return `Generate one image that makes it easy and fun to guess these three New Year's resolutions. Use clear, obvious visuals that make each resolution easily identifiable:
+
+1. ${resolutions[0]}
+2. ${resolutions[1]}
+3. ${resolutions[2]}
+
+Make the representation of each resolution very clear and guessable, like a visual puzzle that's fun but very easy to solve.`;
   };
 
   const handleGenerate = async () => {
@@ -75,6 +81,9 @@ export default function Home() {
       setIsEditing(false);
       setIsGenerating(true);
 
+      const prompt = generatePrompt(resolutions);
+      console.log('DALL-E Prompt:', prompt);
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 55000);
 
@@ -82,7 +91,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: generatePrompt(resolutions),
+          prompt: prompt,
           userId: session?.user?.email,
           userName: session?.user?.name || 'anonymous-user'
         }),
