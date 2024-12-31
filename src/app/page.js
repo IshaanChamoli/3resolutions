@@ -13,6 +13,7 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(true);
   const [isOptedIn, setIsOptedIn] = useState(true);
   const [commitCount, setCommitCount] = useState(0);
+  const [shareText, setShareText] = useState('');
 
   useEffect(() => {
     if (session) {
@@ -132,12 +133,12 @@ Make the representation of each resolution very clear and guessable, like a visu
     }
   };
 
-  const handleLinkedInShare = () => {
-    if (generatedImage) {
+  useEffect(() => {
+    if (session && generatedImage) {
       const formattedName = formatNameForUrl(session.user.name);
       const shareUrl = `https://3resolutions.com/share?name=${formattedName}`;
-
-      const shareText = `🌟 Guess My 2025 Resolutions! 🌟
+      
+      const text = `🌟 Guess My 2025 Resolutions! 🌟
 
 This attached image (link) hints at what my top 3 resolutions are! - 
 ${shareUrl}
@@ -152,6 +153,15 @@ Just submit your resolutions to get help in staying accountable ; )
 So go and lock in to your New Year's resolutions now! Happy New Year!
 
 #NewYearResolutions #2025Goals #NetworkingFun #GuessTheResolutions #ShareYourJourney #GrowthMindset #3resolutions`;
+      
+      setShareText(text);
+    }
+  }, [session, generatedImage]);
+
+  const handleLinkedInShare = () => {
+    if (generatedImage) {
+      const formattedName = formatNameForUrl(session.user.name);
+      const shareUrl = `https://3resolutions.com/share?name=${formattedName}`;
 
       // Check if user is on mobile
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -164,15 +174,11 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
         // Fallback URL for if app isn't installed
         const linkedInMobileUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodedText}`;
         
-        // Try to open LinkedIn app first, fall back to mobile web if app isn't installed
         window.location.href = linkedInAppUrl;
-        
-        // Set a timeout to redirect to mobile web version if app doesn't open
         setTimeout(() => {
           window.location.href = linkedInMobileUrl;
         }, 1000);
       } else {
-        // Desktop behavior remains unchanged
         const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?mini=true&text=${encodeURIComponent(shareText)}`;
         window.open(linkedInUrl, '_blank', 'width=600,height=600');
       }
@@ -344,14 +350,14 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                 <button 
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="w-full mt-6 sm:mt-12 px-4 sm:px-8 py-3 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm sm:text-base"
+                  className="w-full mt-4 sm:mt-8 px-4 sm:px-8 py-3 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 text-sm sm:text-base"
                 >
                   {isGenerating ? 'Generating an image with your goals ✨' : 'Generate AI Art 🎨'}
                 </button>
               </div>
             </div>
           ) : (
-            // Generated Image View - remains the same
+            // Generated Image View
             <div className="flex flex-col items-center">
               <div className="aspect-square w-full max-w-[280px] sm:max-w-[360px] mx-auto rounded-xl overflow-hidden shadow-lg">
                 {isGenerating ? (
@@ -372,19 +378,44 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
               
               {!isEditing && (
                 <>
-                  <p className="text-sm text-gray-500 mt-4 text-center mb-9">
-                  Can people guess what your resolutions are? Let's find out! 🤔
+                  <p className="text-sm text-gray-500 mt-2 text-center mb-4">
+                    Can people guess what your resolutions are? Let's find out! 🤔
                   </p>
-                  <div className="space-y-3 w-full">
+                  <div className="w-full">
                     {generatedImage && (
                       <>
                         <button 
-                          className="w-full px-6 sm:px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base"
+                          className="w-full px-6 sm:px-8 py-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity text-base"
                           onClick={handleLinkedInShare}
                         >
                           Go to LinkedIn &nbsp;🚀
                         </button>
-                        <p className="text-xs text-gray-400 text-center mt-2">
+                        
+                        <div className="flex items-center justify-center gap-2 my-1.5">
+                          <div className="h-[1px] flex-grow bg-gray-200"></div>
+                          <span className="text-xs text-gray-400">or</span>
+                          <div className="h-[1px] flex-grow bg-gray-200"></div>
+                        </div>
+
+                        <button 
+                          className="mx-auto px-12 py-1.5 rounded-full text-gray-500 hover:text-gray-700 text-sm transition-colors border border-gray-100 hover:border-gray-200 flex items-center justify-center"
+                          onClick={(e) => {
+                            navigator.clipboard.writeText(shareText).then(() => {
+                              const button = e.target;
+                              const buttonSpan = button.querySelector('span') || button;
+                              const originalText = 'Copy content 📋';
+                              buttonSpan.textContent = 'Copied! ✨';
+                              setTimeout(() => {
+                                buttonSpan.textContent = originalText;
+                              }, 2000);
+                            }).catch(err => {
+                              console.error('Failed to copy:', err);
+                            });
+                          }}
+                        >
+                          <span>Copy content &nbsp;📋</span>
+                        </button>
+                        <p className="text-[10px] text-gray-400 text-center mt-0.5">
                           {`https://3resolutions.com/share?name=${formatNameForUrl(session.user.name)}`}
                         </p>
                       </>
