@@ -252,7 +252,7 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
         {/* Header Section */}
         <div className="text-center pt-6 sm:pt-12 pb-4 sm:pb-6 mb-4 sm:mb-6">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 to-purple-600 inline-block text-transparent bg-clip-text">
-            3resolutions &nbsp;</h1>
+            3resolutionssss &nbsp;</h1>
           <span className="inline-block animate-party text-3xl sm:text-4xl md:text-5xl bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">🎉</span>
           <div className="text-gray-600 text-sm space-y-1.5 sm:space-y-2 max-w-xl mx-auto text-center px-2 sm:px-4">
             <p className="flex items-center justify-center gap-2 hover:text-gray-700 transition-colors">
