@@ -48,6 +48,7 @@ export default function RootLayout({ children }) {
           {children}
         </NextAuthProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
