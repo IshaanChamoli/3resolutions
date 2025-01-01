@@ -46,13 +46,22 @@ export default function Home() {
   };
 
   const generatePrompt = (resolutions) => {
-    return `Generate one image that makes it easy and fun to guess these three New Year's resolutions. Use clear, obvious visuals that make each resolution easily identifiable:
+    return `You are a creative prompt engineer. Your task is to create a fun, creative DALL-E prompt that combines all three resolutions into one cohesive image that makes it easy for people to guess the original resolutions.
 
+Example:
+Resolutions: "Make more money", "Get fit", "Start content creation"
+Output: "A cartoon hundred dollar bill wearing a sweatband and running shoes, vlogging his morning jog with a selfie stick, vibrant colors, digital art style"
+
+Example:
+Resolutions: "Learn piano", "Cook healthy", "Travel more"
+Output: "A grand piano transformed into a food truck, parked at the Eiffel Tower, with sheet music-shaped steam rising from healthy meals being cooked on the keys, whimsical illustration style"
+
+Based on these three resolutions, create a creative, fun DALL-E prompt that makes it easy to guess them:
 1. ${resolutions[0]}
 2. ${resolutions[1]}
 3. ${resolutions[2]}
 
-Make the representation of each resolution very clear and guessable, like a visual puzzle that's fun but very easy to solve.`;
+Important: Keep the style playful and make sure each resolution is clearly represented in a way that makes it easy to guess. Focus on creating one cohesive scene rather than separate elements.`;
   };
 
   const handleGenerate = async () => {
@@ -89,17 +98,30 @@ Make the representation of each resolution very clear and guessable, like a visu
       setIsEditing(false);
       setIsGenerating(true);
 
-      const prompt = generatePrompt(resolutions);
-      console.log('DALL-E Prompt:', prompt);
+      // First, get the creative prompt from GPT
+      const gptResponse = await fetch('/api/generate-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resolutions })
+      });
+
+      if (!gptResponse.ok) {
+        throw new Error('Failed to generate creative prompt');
+      }
+
+      const { prompt } = await gptResponse.json();
+      console.log('GPT Generated Prompt:', prompt);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 55000);
 
+      // Use the GPT-generated prompt for DALL-E
+      console.log('Sending to DALL-E:', prompt);
       const response = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: prompt,
+          prompt,
           userId: session?.user?.email,
           userName: session?.user?.name || 'anonymous-user'
         }),
