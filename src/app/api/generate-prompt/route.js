@@ -47,34 +47,33 @@ export async function POST(request) {
 }
 
 function generatePrompt(resolutions) {
-  return `Create a fun, game-like DALL-E prompt that turns these three resolutions into an easy-to-guess visual puzzle.
+  return `Create a short DALL-E prompt that combines these resolutions using common, recognizable symbols in one scene.
 
 Important guidelines:
-- Make it like a fun guessing game where each resolution is clearly represented
-- Use obvious visual symbols and metaphors that people can easily decode
-- Focus on inanimate objects and cartoonish representations
-- Avoid human figures; instead use recognizable objects and symbols
-- Keep the style playful and cartoonish
-- Combine elements in a clever but easily understandable way
+- Use iconic symbols that instantly represent each resolution
+- Keep the prompt short and clear
+- Combine the symbols naturally in one scene
+- Avoid unnecessary descriptive details
 
 Here are examples of good prompts:
 
 Example 1:
 Resolutions: "Make more money", "Get fit", "Start content creation"
-Output: "A giant piggy bank wearing a sporty sweatband, doing jumping jacks on a YouTube play button, with dumbbells made of gold coins scattered around, digital art style, clear iconic symbols"
+Output: "Dollar bills and coins scattered around dumbbells and a YouTube play button"
 
 Example 2:
 Resolutions: "Learn piano", "Cook healthy", "Travel more"
-Output: "A cartoon piano with its lid open revealing a salad bowl inside, with floating carrots as piano keys, and a passport, plane tickets, and travel stickers decorating its side like bumper stickers, playful illustration style"
+Output: "Grand piano next to a fruit bowl and passport, with airplane in window"
 
-Based on these three resolutions, create a creative, easily guessable DALL-E prompt:
+Based on these three resolutions, create one clear scene:
 1. ${resolutions[0]}
 2. ${resolutions[1]}
 3. ${resolutions[2]}
 
 Remember:
-- Use clear, recognizable symbols for each resolution
-- Make it fun but obvious enough that people can guess the resolutions
-- Keep it cartoonish and playful
-- Think of it as creating a visual riddle that's enjoyable but not too hard to solve`;
+- Use the most recognizable symbol for each resolution
+- Keep the prompt short and direct
+- Make each element easily identifiable
+
+Create the prompt for Dall-e now!`;
 } 

@@ -34,7 +34,8 @@ export const options = {
               provider: account.provider,
               providerId: account.providerAccountId,
               imageCount: 0,
-              lockedIn: true
+              lockedIn: true,
+              hasSharedToLinkedIn: false
             };
             console.log("Creating new user with data:", userData);
             await setDoc(userRef, userData);

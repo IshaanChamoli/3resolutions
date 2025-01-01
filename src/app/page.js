@@ -181,10 +181,20 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
     }
   }, [session, generatedImage]);
 
-  const handleLinkedInShare = () => {
+  const handleLinkedInShare = async () => {
     if (generatedImage) {
       const formattedName = formatNameForUrl(session.user.name);
       const shareUrl = `https://3resolutions.com/share?name=${formattedName}`;
+
+      // Update hasSharedToLinkedIn in Firebase
+      try {
+        const userRef = doc(db, "users", session.user.email);
+        await setDoc(userRef, {
+          hasSharedToLinkedIn: true
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error updating LinkedIn share status:', error);
+      }
 
       // Check if user is on mobile
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -409,19 +419,27 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
                                   ? "text-gray-400 border border-gray-200" 
                                   : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90"
                               }`}
-                              onClick={(e) => {
-                                navigator.clipboard.writeText(shareText).then(() => {
+                              onClick={async (e) => {
+                                try {
+                                  await navigator.clipboard.writeText(shareText);
                                   const button = e.target;
                                   const buttonSpan = button.querySelector('span') || button;
                                   const originalText = '1. Copy content 📋';
                                   buttonSpan.textContent = 'Copied! ✨';
                                   setHasCopied(true);
+                                  
+                                  // Update Firebase when content is copied
+                                  const userRef = doc(db, "users", session.user.email);
+                                  await setDoc(userRef, {
+                                    hasSharedToLinkedIn: true
+                                  }, { merge: true });
+                                  
                                   setTimeout(() => {
                                     buttonSpan.textContent = originalText;
                                   }, 2000);
-                                }).catch(err => {
-                                  console.error('Failed to copy:', err);
-                                });
+                                } catch (err) {
+                                  console.error('Failed to copy or update status:', err);
+                                }
                               }}
                             >
                               <span>1. Copy content &nbsp;📋</span>
@@ -461,18 +479,26 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
 
                             <button 
                               className="mx-auto px-8 py-1.5 rounded-full text-gray-500 hover:text-gray-700 text-sm transition-colors border border-gray-100 hover:border-gray-200 flex items-center justify-center"
-                              onClick={(e) => {
-                                navigator.clipboard.writeText(shareText).then(() => {
+                              onClick={async (e) => {
+                                try {
+                                  await navigator.clipboard.writeText(shareText);
                                   const button = e.target;
                                   const buttonSpan = button.querySelector('span') || button;
                                   const originalText = 'Copy content 📋';
                                   buttonSpan.textContent = 'Copied! ✨';
+                                  
+                                  // Update Firebase when content is copied
+                                  const userRef = doc(db, "users", session.user.email);
+                                  await setDoc(userRef, {
+                                    hasSharedToLinkedIn: true
+                                  }, { merge: true });
+                                  
                                   setTimeout(() => {
                                     buttonSpan.textContent = originalText;
                                   }, 2000);
-                                }).catch(err => {
-                                  console.error('Failed to copy:', err);
-                                });
+                                } catch (err) {
+                                  console.error('Failed to copy or update status:', err);
+                                }
                               }}
                             >
                               <span>Copy content &nbsp;📋</span>
