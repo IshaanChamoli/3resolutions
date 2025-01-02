@@ -55,6 +55,21 @@ export const options = {
       }
     }
   ],
+  callbacks: {
+    async session({ session }) {
+      if (session?.user?.email) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", session.user.email));
+          if (userDoc.exists()) {
+            session.user.userData = userDoc.data();
+          }
+        } catch (error) {
+          console.error("Error fetching user data for session:", error);
+        }
+      }
+      return session;
+    }
+  },
   pages: {
     signIn: '/',
   }
