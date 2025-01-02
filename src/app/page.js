@@ -329,18 +329,48 @@ So go and lock in to your New Year's resolutions now! Happy New Year!
         {/* Main Content */}
         <div className={`flex-grow ${!isEditing ? 'mb-4' : ''}`}>
           {!session ? (
-            // Sign In View
             <div className="h-full flex flex-col justify-center">
               <div className="space-y-8 mb-12 pt-8">
-                <div className="flex items-center justify-center">
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const name = e.target.name.value;
+                    const email = e.target.email.value;
+                    
+                    if (!email || !name) return;
+                    
+                    const result = await signIn('email-login', {
+                      email,
+                      name,
+                      redirect: true,
+                      callbackUrl: '/'
+                    });
+                  }}
+                  className="flex flex-col gap-4 items-center"
+                >
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Enter your name"
+                    required
+                    className="w-full max-w-md px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    autoComplete="name"
+                  />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                    className="w-full max-w-md px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    autoComplete="email"
+                  />
                   <button
-                    onClick={() => signIn('google', { callbackUrl: '/' })}
-                    className="px-8 py-3 rounded-full bg-white border border-gray-300 shadow-sm hover:shadow-md transition-shadow flex items-center gap-3"
+                    type="submit"
+                    className="px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:opacity-90 transition-opacity"
                   >
-                    <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-                    Sign in with Google
+                    Continue →
                   </button>
-                </div>
+                </form>
               </div>
             </div>
           ) : isEditing ? (

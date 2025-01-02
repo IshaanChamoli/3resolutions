@@ -5,80 +5,57 @@ import { formatNameForUrl } from '@/app/utils/nameUtils';
 
 export const options = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    })
-  ],
-  callbacks: {
-    async signIn({ user, account, profile }) {
-      console.log("SignIn callback triggered", { user, account });
-      
-      if (account.provider === "google") {
+    {
+      id: 'email-login',
+      name: 'Email',
+      type: 'credentials',
+      credentials: {
+        email: { label: "Email", type: "text" },
+        name: { label: "Name", type: "text" }
+      },
+      authorize: async (credentials) => {
+        if (!credentials?.email || !credentials?.name) return null;
+        
         try {
-          console.log("Attempting to access Firestore...");
-          const userRef = doc(db, "users", user.email);
-          console.log("Got user ref:", userRef.path);
-          
+          const userRef = doc(db, "users", credentials.email);
           const userSnap = await getDoc(userRef);
-          console.log("User exists?", userSnap.exists());
           
+          const userData = {
+            email: credentials.email,
+            name: credentials.name,
+            formattedName: formatNameForUrl(credentials.name),
+          };
+
           if (!userSnap.exists()) {
-            const userData = {
-              email: user.email,
-              name: user.name,
-              formattedName: formatNameForUrl(user.name),
-              image: user.image,
+            await setDoc(userRef, {
+              ...userData,
               createdAt: serverTimestamp(),
               lastLogin: serverTimestamp(),
-              provider: account.provider,
-              providerId: account.providerAccountId,
               imageCount: 0,
               lockedIn: true,
               hasSharedToLinkedIn: false
-            };
-            console.log("Creating new user with data:", userData);
-            await setDoc(userRef, userData);
-            console.log('New user created in Firestore:', user.email);
+            });
           } else {
-            const updateData = {
+            await setDoc(userRef, {
               lastLogin: serverTimestamp(),
-              name: user.name,
-              formattedName: formatNameForUrl(user.name),
-              image: user.image
-            };
-            console.log("Updating existing user with data:", updateData);
-            await setDoc(userRef, updateData, { merge: true });
-            console.log('Existing user updated in Firestore:', user.email);
+              name: credentials.name,
+              formattedName: formatNameForUrl(credentials.name)
+            }, { merge: true });
           }
-          return true;
+
+          return {
+            id: credentials.email,
+            email: credentials.email,
+            name: credentials.name
+          };
         } catch (error) {
-          console.error("Error handling Firebase user:", error);
-          console.error("Full error object:", JSON.stringify(error, null, 2));
-          return false;
+          console.error("Error in email auth:", error);
+          return null;
         }
       }
-      return true;
-    },
-    async session({ session, token }) {
-      console.log("Session callback triggered", { session });
-      if (session?.user?.email) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", session.user.email));
-          if (userDoc.exists()) {
-            session.user.userData = userDoc.data();
-            console.log("Added user data to session:", session.user.userData);
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      }
-      return session;
     }
-  },
-  debug: true,
-  secret: process.env.NEXTAUTH_SECRET,
+  ],
   pages: {
-    signIn: "/"
+    signIn: '/',
   }
-} 
+}; 
